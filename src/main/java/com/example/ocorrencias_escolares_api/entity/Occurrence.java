@@ -8,9 +8,9 @@ import lombok.Data;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "ocurrances")
+@Table(name = "occurrances")
 @Data
-public class Ocurrence {
+public class Occurrence {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,7 +20,7 @@ public class Ocurrence {
     private String description;
 
     @NotNull(message = "Date is mandatory")
-    private LocalDate ocuranceDate;
+    private LocalDate occuranceDate;
 
     @NotNull(message = "Student is mandatory")
     @ManyToOne
@@ -33,5 +33,5 @@ public class Ocurrence {
     private Teacher teacher;
 
     @NotBlank(message = "Type is mandatory")
-    private String ocurrenceType;
+    private String occurrenceType;
 }

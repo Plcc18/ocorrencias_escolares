@@ -7,7 +7,7 @@ import lombok.Data;
 import java.time.LocalDate;
 
 @Data
-public class OcurrenceDTO {
+public class OccurrenceDTO {
 
     private Long Id;
 
@@ -15,7 +15,7 @@ public class OcurrenceDTO {
     private String description;
 
     @NotNull
-    private LocalDate ocurranceDate;
+    private LocalDate occurranceDate;
 
     @NotNull
     private Long studentId;
@@ -24,5 +24,5 @@ public class OcurrenceDTO {
     private Long teacherId;
 
     @NotBlank
-    private String ocurrenceType;
+    private String occurrenceType;
 }
