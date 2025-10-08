@@ -9,7 +9,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.nio.file.attribute.UserPrincipal;
 import java.util.Date;
 
 @Component
@@ -31,7 +30,7 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public String getUsernameFromJwt(String token) {
+    public String getUsernameFromJWT(String token) {
         SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
         return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload().getSubject();
     }
