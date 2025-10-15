@@ -13,6 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("/api/students")
 public class StudentController {
@@ -47,7 +50,16 @@ public class StudentController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasRole('ADMIN', 'TEACHER')")
+    public ResponseEntity<List<StudentDTO>> findAll() {
+        List<StudentDTO> dtos = service.findAll().stream()
+                .map(student -> modelMapper.map(student, StudentDTO.class))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
