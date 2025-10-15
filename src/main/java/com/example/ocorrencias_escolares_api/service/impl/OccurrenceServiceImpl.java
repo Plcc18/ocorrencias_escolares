@@ -44,7 +44,7 @@ public class OccurrenceServiceImpl implements OccurrenceService {
         Occurrence occurrence = findById(id);
         modelMapper.map(dto, occurrence);
         if (dto.getStudentId() != null) {
-            occurrence.setStudent(studentService.findById(dto.getTeacherId()));
+            occurrence.setStudent(studentService.findById(dto.getStudentId()));
         }
         if (dto.getTeacherId() != null) {
             occurrence.setTeacher(teacherService.findById(dto.getTeacherId()));
@@ -54,7 +54,7 @@ public class OccurrenceServiceImpl implements OccurrenceService {
 
     @Override
     public Occurrence findById(Long id) {
-        return repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Occurrence not found")) ;
+        return repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Occurrence not found"));
     }
 
     @Override
