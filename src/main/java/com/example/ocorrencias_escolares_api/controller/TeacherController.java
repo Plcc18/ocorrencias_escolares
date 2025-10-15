@@ -36,7 +36,7 @@ public class TeacherController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<TeacherDTO> update(@PathVariable Long id, @Valid @io.swagger.v3.oas.annotations.parameters.RequestBody TeacherDTO dto) {
+    public ResponseEntity<TeacherDTO> update(@PathVariable Long id, @Valid @RequestBody TeacherDTO dto) {
         Teacher teacher = service.update(id, dto);
         return ResponseEntity.ok(modelMapper.map(teacher, TeacherDTO.class));
     }
@@ -58,11 +58,9 @@ public class TeacherController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
-
-
 }
