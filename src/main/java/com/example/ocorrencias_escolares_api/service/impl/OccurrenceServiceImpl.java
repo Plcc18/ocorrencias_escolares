@@ -36,7 +36,7 @@ public class OccurrenceServiceImpl implements OccurrenceService {
         Teacher teacher = teacherService.findById(dto.getTeacherId());
         occurrence.setStudent(student);
         occurrence.setTeacher(teacher);
-        return repository .save(occurrence)
+        return repository .save(occurrence);
     }
 
     @Override
