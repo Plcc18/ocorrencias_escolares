@@ -5,7 +5,7 @@ import com.example.ocorrencias_escolares_api.dto.TeacherDTO;
 import com.example.ocorrencias_escolares_api.entity.Student;
 import com.example.ocorrencias_escolares_api.entity.Teacher;
 import com.example.ocorrencias_escolares_api.service.StudentService;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import org.springframework.web.bind.annotation.RequestBody;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
