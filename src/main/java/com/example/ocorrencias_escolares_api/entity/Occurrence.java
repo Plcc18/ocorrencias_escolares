@@ -8,7 +8,7 @@ import lombok.Data;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "occurrances")
+@Table(name = "occurrences")
 @Data
 public class Occurrence {
 
@@ -20,7 +20,7 @@ public class Occurrence {
     private String description;
 
     @NotNull(message = "Date is mandatory")
-    private LocalDate occuranceDate;
+    private LocalDate occurrenceDate;
 
     @NotNull(message = "Student is mandatory")
     @ManyToOne
