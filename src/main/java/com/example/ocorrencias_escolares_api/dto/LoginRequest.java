@@ -7,6 +7,10 @@ import lombok.Data;
 @Data
 public class LoginRequest {
 
+    @NotBlank(message = "Email is mandatory")
+    @Schema(description = "Email cadastrado no sistema", example = "pedrolucas@example.com")
+    private String email;
+
     @NotBlank
     @Schema(description = "Nome de usuário cadastrado no sistema", example = "pedrolucas")
     private String username;

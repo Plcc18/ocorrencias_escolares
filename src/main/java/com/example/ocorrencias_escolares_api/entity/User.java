@@ -1,6 +1,8 @@
 package com.example.ocorrencias_escolares_api.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -18,18 +20,28 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Email is mandatory")
+    @Size(max = 100)
+    @Column(unique = true, nullable = false)
+    private String email;
+
+    @NotBlank(message = "Username is mandatory")
+    @Size(max = 100)
     @Column(unique = true, nullable = false)
     private String username;
 
+    @NotBlank(message = "Password is mandatory")
     @Column(nullable = false)
     private String password;
 
+    @NotBlank(message = "Role is mandatory")
+    @Size(max = 20)
     @Column(nullable = false)
     private String role;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role));
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role));
     }
 
     @Override
@@ -39,7 +51,7 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
-        return username;
+        return email;
     }
 
     @Override

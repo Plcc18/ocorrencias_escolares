@@ -14,6 +14,11 @@ public class Student {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Email is mandatory")
+    @Size(max = 100)
+    @Column(unique = true, nullable = false)
+    private String email;
+
     @NotBlank(message = "Name is mandatory")
     @Size(max = 100)
     private String name;

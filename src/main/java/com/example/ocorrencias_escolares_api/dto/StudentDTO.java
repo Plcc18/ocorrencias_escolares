@@ -17,7 +17,16 @@ public class StudentDTO {
     )
     private Long id;
 
-    @NotBlank
+    @NotBlank(message = "Email is mandatory")
+    @Size(max = 100)
+    @Schema(
+            description = "Email do aluno",
+            example = "pedrolucas@example.com",
+            maxLength = 100
+    )
+    private String email;
+
+    @NotBlank(message = "Name is mandatory")
     @Size(max = 100)
     @Schema(
             description = "Nome completo do aluno",
@@ -26,7 +35,7 @@ public class StudentDTO {
     )
     private String name;
 
-    @NotBlank
+    @NotBlank(message = "Grade is mandatory")
     @Size(max = 20)
     @Schema(
             description = "Série ou grau do aluno",
