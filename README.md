@@ -58,8 +58,8 @@ occurrences (id, description, occurrence_date, student_id, teacher_id, occurrenc
 | POST   | `/api/auth/login`    | Login com JWT          | Público    |
 
 #### Exemplo de Registro
-```json
 POST /api/auth/register
+```json
 {
   "email": "admin@example.com",
   "username": "admin",
@@ -69,8 +69,8 @@ POST /api/auth/register
 ```
 
 #### Exemplo de Login
-```json
 POST /api/auth/login
+```json
 {
   "email": "admin@example.com",
   "password": "123456"
@@ -237,4 +237,3 @@ Este projeto está sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para d
 ---
 
 **Ocorrências Escolares API** — Simples, segura e pronta para produção.
-```
