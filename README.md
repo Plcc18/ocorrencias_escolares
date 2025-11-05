@@ -1,5 +1,18 @@
-
 # Ocorrências Escolares API
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Java-17-blue?logo=openjdk&logoColor=white" alt="Java 17"/>
+  <img src="https://img.shields.io/badge/Spring%20Boot-3.0-6DB33F?logo=springboot&logoColor=white" alt="Spring Boot"/>
+  <img src="https://img.shields.io/badge/PostgreSQL-15-336791?logo=postgresql&logoColor=white" alt="PostgreSQL"/>
+  <img src="https://img.shields.io/badge/Spring%20Security-JWT-orange?logo=jsonwebtokens&logoColor=white" alt="JWT"/>
+  <img src="https://img.shields.io/badge/Flyway-DB--Migrations-red?logo=flyway&logoColor=white" alt="Flyway"/>
+  <img src="https://img.shields.io/badge/Swagger-OpenAPI-85EA2D?logo=swagger&logoColor=black" alt="Swagger"/>
+  <img src="https://img.shields.io/github/license/Plcc18/ocorrencias_escolares?color=yellow&logo=open-source-initiative&logoColor=white" alt="License"/>
+  <img src="https://img.shields.io/github/actions/workflow/status/Plcc18/ocorrencias_escolares/maven.yml?label=Build&logo=githubactions&logoColor=white" alt="Build Status"/>
+  <img src="https://img.shields.io/github/languages/top/Plcc18/ocorrencias_escolares?color=blue&logo=java&logoColor=white" alt="Main Language"/>
+  <img src="https://img.shields.io/github/last-commit/Plcc18/ocorrencias_escolares?logo=git&logoColor=white&color=brightgreen" alt="Last Commit"/>
+  <img src="https://img.shields.io/github/repo-size/Plcc18/ocorrencias_escolares?color=blueviolet&logo=github" alt="Repo Size"/>
+</p>
 
 API RESTful para gerenciamento de **ocorrências escolares**, com controle de **alunos**, **professores** e **usuários autenticados** (ADMIN/USER).  
 Desenvolvida com **Spring Boot**, **Spring Security**, **JWT**, **PostgreSQL** e **Flyway**.
