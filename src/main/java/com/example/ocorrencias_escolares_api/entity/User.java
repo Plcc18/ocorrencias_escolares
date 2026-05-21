@@ -1,7 +1,9 @@
 package com.example.ocorrencias_escolares_api.entity;
 
+import com.example.ocorrencias_escolares_api.enums.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
@@ -34,14 +36,14 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    @NotBlank(message = "Role is mandatory")
-    @Size(max = 20)
-    @Column(nullable = false)
-    private String role;
+    @NotNull(message = "Role is mandatory")
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Role role;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role));
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
     @Override
@@ -73,5 +75,4 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
-
 }

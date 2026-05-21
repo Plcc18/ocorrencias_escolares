@@ -21,9 +21,11 @@ public class Teacher {
 
     @NotBlank(message = "Name is mandatory")
     @Size(max = 100)
+    @Column(nullable = false)
     private String name;
 
     @NotBlank(message = "Subject is mandatory")
     @Size(max = 50)
+    @Column(nullable = false)
     private String subject;
 }

@@ -1,22 +1,24 @@
 package com.example.ocorrencias_escolares_api.controller;
 
-import com.example.ocorrencias_escolares_api.dto.StudentDTO;
 import com.example.ocorrencias_escolares_api.dto.TeacherDTO;
-import com.example.ocorrencias_escolares_api.entity.Student;
 import com.example.ocorrencias_escolares_api.entity.Teacher;
 import com.example.ocorrencias_escolares_api.service.TeacherService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 @RestController
 @RequestMapping("/api/teachers")
+@Tag(name = "Professores", description = "Gerenciamento de professores")
 public class TeacherController {
 
     private final TeacherService service;
@@ -29,13 +31,15 @@ public class TeacherController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Cadastrar novo professor")
     public ResponseEntity<TeacherDTO> create(@Valid @RequestBody TeacherDTO dto) {
         Teacher teacher = service.create(dto);
-        return new ResponseEntity<>(modelMapper.map(teacher, TeacherDTO.class), HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(modelMapper.map(teacher, TeacherDTO.class));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Atualizar dados de um professor")
     public ResponseEntity<TeacherDTO> update(@PathVariable Long id, @Valid @RequestBody TeacherDTO dto) {
         Teacher teacher = service.update(id, dto);
         return ResponseEntity.ok(modelMapper.map(teacher, TeacherDTO.class));
@@ -43,6 +47,7 @@ public class TeacherController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @Operation(summary = "Buscar professor por ID")
     public ResponseEntity<TeacherDTO> findById(@PathVariable Long id) {
         Teacher teacher = service.findById(id);
         return ResponseEntity.ok(modelMapper.map(teacher, TeacherDTO.class));
@@ -50,15 +55,17 @@ public class TeacherController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<TeacherDTO>> findAll() {
-        List<TeacherDTO> dtos = service.findAll().stream()
-                .map(teacher -> modelMapper.map(teacher, TeacherDTO.class))
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
+    @Operation(summary = "Listar todos os professores (paginado)")
+    public ResponseEntity<Page<TeacherDTO>> findAll(
+            @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
+        Page<TeacherDTO> page = service.findAll(pageable)
+                .map(teacher -> modelMapper.map(teacher, TeacherDTO.class));
+        return ResponseEntity.ok(page);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Remover professor")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

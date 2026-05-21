@@ -14,7 +14,6 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         final String securitySchemeName = "bearerAuth";
-
         return new OpenAPI()
                 .info(new Info()
                         .title("Ocorrências Escolares API")

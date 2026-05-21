@@ -21,9 +21,11 @@ public class Student {
 
     @NotBlank(message = "Name is mandatory")
     @Size(max = 100)
+    @Column(nullable = false)
     private String name;
 
     @NotBlank(message = "Grade is mandatory")
     @Size(max = 20)
+    @Column(nullable = false)
     private String grade;
 }

@@ -1,0 +1,135 @@
+package com.example.ocorrencias_escolares_api.service;
+
+import com.example.ocorrencias_escolares_api.dto.StudentDTO;
+import com.example.ocorrencias_escolares_api.entity.Student;
+import com.example.ocorrencias_escolares_api.exception.BusinessException;
+import com.example.ocorrencias_escolares_api.exception.ResourceNotFoundException;
+import com.example.ocorrencias_escolares_api.repository.StudentRepository;
+import com.example.ocorrencias_escolares_api.service.impl.StudentServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class StudentServiceTest {
+
+    @Mock
+    private StudentRepository repository;
+
+    @Mock
+    private ModelMapper modelMapper;
+
+    @InjectMocks
+    private StudentServiceImpl service;
+
+    private Student student;
+    private StudentDTO dto;
+
+    @BeforeEach
+    void setUp() {
+        student = new Student();
+        student.setId(1L);
+        student.setEmail("pedro@example.com");
+        student.setName("Pedro Lucas");
+        student.setGrade("1º Ano");
+
+        dto = new StudentDTO();
+        dto.setEmail("pedro@example.com");
+        dto.setName("Pedro Lucas");
+        dto.setGrade("1º Ano");
+    }
+
+    @Test
+    @DisplayName("create - sucesso quando email não existe")
+    void create_success() {
+        when(repository.existsByEmail(dto.getEmail())).thenReturn(false);
+        when(modelMapper.map(dto, Student.class)).thenReturn(student);
+        when(repository.save(any(Student.class))).thenReturn(student);
+
+        Student result = service.create(dto);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getEmail()).isEqualTo(dto.getEmail());
+        verify(repository).save(any(Student.class));
+    }
+
+    @Test
+    @DisplayName("create - lança BusinessException quando email já existe")
+    void create_duplicateEmail_throwsBusinessException() {
+        when(repository.existsByEmail(dto.getEmail())).thenReturn(true);
+
+        assertThatThrownBy(() -> service.create(dto))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Email já cadastrado");
+
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("findById - retorna aluno quando encontrado")
+    void findById_found() {
+        when(repository.findById(1L)).thenReturn(Optional.of(student));
+
+        Student result = service.findById(1L);
+
+        assertThat(result).isEqualTo(student);
+    }
+
+    @Test
+    @DisplayName("findById - lança ResourceNotFoundException quando não encontrado")
+    void findById_notFound_throwsException() {
+        when(repository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.findById(99L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("99");
+    }
+
+    @Test
+    @DisplayName("findAll - retorna página de alunos")
+    void findAll_returnPage() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Student> page = new PageImpl<>(List.of(student));
+        when(repository.findAll(pageable)).thenReturn(page);
+
+        Page<Student> result = service.findAll(pageable);
+
+        assertThat(result.getContent()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("delete - executa quando aluno existe")
+    void delete_success() {
+        when(repository.existsById(1L)).thenReturn(true);
+
+        assertThatCode(() -> service.delete(1L)).doesNotThrowAnyException();
+        verify(repository).deleteById(1L);
+    }
+
+    @Test
+    @DisplayName("delete - lança ResourceNotFoundException quando aluno não existe")
+    void delete_notFound_throwsException() {
+        when(repository.existsById(99L)).thenReturn(false);
+
+        assertThatThrownBy(() -> service.delete(99L))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verify(repository, never()).deleteById(any());
+    }
+}
