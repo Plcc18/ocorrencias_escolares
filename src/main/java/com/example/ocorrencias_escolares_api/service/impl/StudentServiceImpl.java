@@ -4,6 +4,7 @@ import com.example.ocorrencias_escolares_api.dto.StudentDTO;
 import com.example.ocorrencias_escolares_api.entity.Student;
 import com.example.ocorrencias_escolares_api.exception.BusinessException;
 import com.example.ocorrencias_escolares_api.exception.ResourceNotFoundException;
+import com.example.ocorrencias_escolares_api.repository.OccurrenceRepository;
 import com.example.ocorrencias_escolares_api.repository.StudentRepository;
 import com.example.ocorrencias_escolares_api.service.StudentService;
 import org.modelmapper.ModelMapper;
@@ -16,10 +17,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class StudentServiceImpl implements StudentService {
 
     private final StudentRepository repository;
+    private final OccurrenceRepository occurrenceRepository;
     private final ModelMapper modelMapper;
 
-    public StudentServiceImpl(StudentRepository repository, ModelMapper modelMapper) {
+    public StudentServiceImpl(StudentRepository repository,
+                              OccurrenceRepository occurrenceRepository,
+                              ModelMapper modelMapper) {
         this.repository = repository;
+        this.occurrenceRepository = occurrenceRepository;
         this.modelMapper = modelMapper;
     }
 
@@ -67,6 +72,11 @@ public class StudentServiceImpl implements StudentService {
     public void delete(Long id) {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Aluno não encontrado com id: " + id);
+        }
+        if (occurrenceRepository.existsByStudentId(id)) {
+            throw new BusinessException(
+                    "Não é possível remover o aluno pois existem ocorrências vinculadas a ele. " +
+                            "Remova as ocorrências antes de excluir o aluno.");
         }
         repository.deleteById(id);
     }

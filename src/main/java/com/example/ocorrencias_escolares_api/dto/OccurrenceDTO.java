@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 public class OccurrenceDTO {
@@ -44,4 +45,12 @@ public class OccurrenceDTO {
     @Schema(description = "Tipo da ocorrência", example = "DISCIPLINA",
             allowableValues = {"DISCIPLINA", "FALTA", "ELOGIO", "ADVERTENCIA", "SUSPENSAO", "OUTRO"})
     private OccurrenceType occurrenceType;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @Schema(description = "Data e hora de criação do registro", accessMode = Schema.AccessMode.READ_ONLY)
+    private LocalDateTime createdAt;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @Schema(description = "Data e hora da última atualização", accessMode = Schema.AccessMode.READ_ONLY)
+    private LocalDateTime updatedAt;
 }

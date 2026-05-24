@@ -18,6 +18,10 @@ public interface OccurrenceRepository extends JpaRepository<Occurrence, Long> {
 
     Page<Occurrence> findByTeacherId(Long teacherId, Pageable pageable);
 
+    boolean existsByStudentId(Long studentId);
+
+    boolean existsByTeacherId(Long teacherId);
+
     @Query("""
             SELECT o FROM Occurrence o
             WHERE (:studentId IS NULL OR o.student.id = :studentId)

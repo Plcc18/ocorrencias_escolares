@@ -31,16 +31,14 @@ public class OccurrenceController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     @Operation(summary = "Registrar nova ocorrência")
     public ResponseEntity<OccurrenceDTO> create(@Valid @RequestBody OccurrenceDTO dto) {
-        Occurrence occurrence = service.create(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(toDTO(occurrence));
+        return ResponseEntity.status(HttpStatus.CREATED).body(toDTO(service.create(dto)));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     @Operation(summary = "Atualizar ocorrência")
     public ResponseEntity<OccurrenceDTO> update(@PathVariable Long id, @Valid @RequestBody OccurrenceDTO dto) {
-        Occurrence occurrence = service.update(id, dto);
-        return ResponseEntity.ok(toDTO(occurrence));
+        return ResponseEntity.ok(toDTO(service.update(id, dto)));
     }
 
     @GetMapping("/{id}")
@@ -57,8 +55,7 @@ public class OccurrenceController {
     public ResponseEntity<Page<OccurrenceDTO>> findAll(
             OccurrenceFilterDTO filter,
             @PageableDefault(size = 20, sort = "occurrenceDate", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<OccurrenceDTO> page = service.findWithFilters(filter, pageable).map(this::toDTO);
-        return ResponseEntity.ok(page);
+        return ResponseEntity.ok(service.findWithFilters(filter, pageable).map(this::toDTO));
     }
 
     @GetMapping("/student/{studentId}")
@@ -69,8 +66,7 @@ public class OccurrenceController {
             @PageableDefault(size = 20, sort = "occurrenceDate", direction = Sort.Direction.DESC) Pageable pageable) {
         OccurrenceFilterDTO filter = new OccurrenceFilterDTO();
         filter.setStudentId(studentId);
-        Page<OccurrenceDTO> page = service.findWithFilters(filter, pageable).map(this::toDTO);
-        return ResponseEntity.ok(page);
+        return ResponseEntity.ok(service.findWithFilters(filter, pageable).map(this::toDTO));
     }
 
     @GetMapping("/teacher/{teacherId}")
@@ -81,8 +77,7 @@ public class OccurrenceController {
             @PageableDefault(size = 20, sort = "occurrenceDate", direction = Sort.Direction.DESC) Pageable pageable) {
         OccurrenceFilterDTO filter = new OccurrenceFilterDTO();
         filter.setTeacherId(teacherId);
-        Page<OccurrenceDTO> page = service.findWithFilters(filter, pageable).map(this::toDTO);
-        return ResponseEntity.ok(page);
+        return ResponseEntity.ok(service.findWithFilters(filter, pageable).map(this::toDTO));
     }
 
     @DeleteMapping("/{id}")
@@ -93,7 +88,6 @@ public class OccurrenceController {
         return ResponseEntity.noContent().build();
     }
 
-    // Manual mapping to avoid ModelMapper conflict with studentId/teacherId
     private OccurrenceDTO toDTO(Occurrence o) {
         OccurrenceDTO dto = new OccurrenceDTO();
         dto.setId(o.getId());
@@ -104,6 +98,8 @@ public class OccurrenceController {
         dto.setStudentName(o.getStudent().getName());
         dto.setTeacherId(o.getTeacher().getId());
         dto.setTeacherName(o.getTeacher().getName());
+        dto.setCreatedAt(o.getCreatedAt());
+        dto.setUpdatedAt(o.getUpdatedAt());
         return dto;
     }
 }

@@ -4,6 +4,7 @@ import com.example.ocorrencias_escolares_api.dto.StudentDTO;
 import com.example.ocorrencias_escolares_api.entity.Student;
 import com.example.ocorrencias_escolares_api.exception.BusinessException;
 import com.example.ocorrencias_escolares_api.exception.ResourceNotFoundException;
+import com.example.ocorrencias_escolares_api.repository.OccurrenceRepository;
 import com.example.ocorrencias_escolares_api.repository.StudentRepository;
 import com.example.ocorrencias_escolares_api.service.impl.StudentServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +32,9 @@ class StudentServiceTest {
 
     @Mock
     private StudentRepository repository;
+
+    @Mock
+    private OccurrenceRepository occurrenceRepository;
 
     @Mock
     private ModelMapper modelMapper;
@@ -114,12 +118,26 @@ class StudentServiceTest {
     }
 
     @Test
-    @DisplayName("delete - executa quando aluno existe")
+    @DisplayName("delete - executa quando aluno existe e sem ocorrências vinculadas")
     void delete_success() {
         when(repository.existsById(1L)).thenReturn(true);
+        when(occurrenceRepository.existsByStudentId(1L)).thenReturn(false);
 
         assertThatCode(() -> service.delete(1L)).doesNotThrowAnyException();
         verify(repository).deleteById(1L);
+    }
+
+    @Test
+    @DisplayName("delete - lança BusinessException quando aluno tem ocorrências vinculadas")
+    void delete_withLinkedOccurrences_throwsBusinessException() {
+        when(repository.existsById(1L)).thenReturn(true);
+        when(occurrenceRepository.existsByStudentId(1L)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.delete(1L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("ocorrências vinculadas");
+
+        verify(repository, never()).deleteById(any());
     }
 
     @Test

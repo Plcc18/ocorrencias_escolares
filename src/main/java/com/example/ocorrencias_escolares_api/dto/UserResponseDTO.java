@@ -4,6 +4,8 @@ import com.example.ocorrencias_escolares_api.enums.Role;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 public class UserResponseDTO {
 
@@ -18,4 +20,7 @@ public class UserResponseDTO {
 
     @Schema(description = "Função no sistema", example = "ADMIN")
     private Role role;
+
+    @Schema(description = "Data e hora de criação da conta")
+    private LocalDateTime createdAt;
 }
