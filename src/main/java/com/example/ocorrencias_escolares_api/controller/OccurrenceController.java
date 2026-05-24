@@ -7,6 +7,7 @@ import com.example.ocorrencias_escolares_api.service.OccurrenceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -54,6 +55,7 @@ public class OccurrenceController {
             description = "Filtros disponíveis: studentId, teacherId, occurrenceType, startDate, endDate")
     public ResponseEntity<Page<OccurrenceDTO>> findAll(
             OccurrenceFilterDTO filter,
+            @ParameterObject
             @PageableDefault(size = 20, sort = "occurrenceDate", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(service.findWithFilters(filter, pageable).map(this::toDTO));
     }
@@ -63,6 +65,7 @@ public class OccurrenceController {
     @Operation(summary = "Listar ocorrências de um aluno específico")
     public ResponseEntity<Page<OccurrenceDTO>> findByStudent(
             @PathVariable Long studentId,
+            @ParameterObject
             @PageableDefault(size = 20, sort = "occurrenceDate", direction = Sort.Direction.DESC) Pageable pageable) {
         OccurrenceFilterDTO filter = new OccurrenceFilterDTO();
         filter.setStudentId(studentId);
@@ -74,6 +77,7 @@ public class OccurrenceController {
     @Operation(summary = "Listar ocorrências registradas por um professor")
     public ResponseEntity<Page<OccurrenceDTO>> findByTeacher(
             @PathVariable Long teacherId,
+            @ParameterObject
             @PageableDefault(size = 20, sort = "occurrenceDate", direction = Sort.Direction.DESC) Pageable pageable) {
         OccurrenceFilterDTO filter = new OccurrenceFilterDTO();
         filter.setTeacherId(teacherId);

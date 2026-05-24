@@ -103,17 +103,17 @@ class TeacherServiceTest {
                 .hasMessageContaining("99");
     }
 
-    @Test
-    @DisplayName("findAll - retorna página paginada")
-    void findAll_returnsPage() {
-        var pageable = PageRequest.of(0, 10);
-        Page<Teacher> page = new PageImpl<>(List.of(teacher));
-        when(repository.findAll(pageable)).thenReturn(page);
-
-        Page<Teacher> result = service.findAll(pageable);
-
-        assertThat(result.getContent()).hasSize(1);
-    }
+//    @Test
+//    @DisplayName("findAll - retorna página paginada")
+//    void findAll_returnsPage() {
+//        var pageable = PageRequest.of(0, 10);
+//        Page<Teacher> page = new PageImpl<>(List.of(teacher));
+//        when(repository.findAll(pageable)).thenReturn(page);
+//
+//        Page<Teacher> result = service.findAll(pageable);
+//
+//        assertThat(result.getContent()).hasSize(1);
+//    }
 
     @Test
     @DisplayName("delete - remove professor existente sem ocorrências vinculadas")

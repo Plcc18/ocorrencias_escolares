@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -15,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/teachers")
@@ -55,12 +58,13 @@ public class TeacherController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Listar todos os professores (paginado)")
-    public ResponseEntity<Page<TeacherDTO>> findAll(
-            @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
-        Page<TeacherDTO> page = service.findAll(pageable)
-                .map(teacher -> modelMapper.map(teacher, TeacherDTO.class));
-        return ResponseEntity.ok(page);
+    @Operation(summary = "Listar todos os professores")
+    public ResponseEntity<List<TeacherDTO>> findAll() {
+        List<TeacherDTO> list = service.findAll()
+                .stream()
+                .map(s -> modelMapper.map(s, TeacherDTO.class))
+                .toList();
+        return ResponseEntity.ok(list);
     }
 
     @DeleteMapping("/{id}")

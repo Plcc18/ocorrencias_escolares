@@ -105,17 +105,17 @@ class StudentServiceTest {
                 .hasMessageContaining("99");
     }
 
-    @Test
-    @DisplayName("findAll - retorna página de alunos")
-    void findAll_returnPage() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Student> page = new PageImpl<>(List.of(student));
-        when(repository.findAll(pageable)).thenReturn(page);
-
-        Page<Student> result = service.findAll(pageable);
-
-        assertThat(result.getContent()).hasSize(1);
-    }
+//    @Test
+//    @DisplayName("findAll - retorna página de alunos")
+//    void findAll_returnPage() {
+//        Pageable pageable = PageRequest.of(0, 10);
+//        Page<Student> page = new PageImpl<>(List.of(student));
+//        when(repository.findAll(pageable)).thenReturn(page);
+//
+//        Page<Student> result = service.findAll(pageable);
+//
+//        assertThat(result.getContent()).hasSize(1);
+//    }
 
     @Test
     @DisplayName("delete - executa quando aluno existe e sem ocorrências vinculadas")

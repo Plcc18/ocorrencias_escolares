@@ -15,20 +15,22 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Rate limiter simples em memória para o endpoint de login.
- * Permite no máximo MAX_ATTEMPTS tentativas por IP dentro de WINDOW_MS milissegundos.
- *
- * Para produção considere substituir por Redis + Bucket4j para suporte a múltiplas instâncias.
- */
 @Component
 public class LoginRateLimitFilter extends OncePerRequestFilter {
 
     private static final String LOGIN_PATH = "/api/auth/login";
     private static final int MAX_ATTEMPTS = 10;
-    private static final long WINDOW_MS = 60_000L; // 1 minuto
+    private static final long WINDOW_MS = 60_000L;
 
-    private record AttemptBucket(AtomicInteger count, long windowStart) {}
+    private static class AttemptBucket {
+        final AtomicInteger count;
+        final long windowStart;
+
+        AttemptBucket(long windowStart) {
+            this.count = new AtomicInteger(1);
+            this.windowStart = windowStart;
+        }
+    }
 
     private final Map<String, AttemptBucket> buckets = new ConcurrentHashMap<>();
 
@@ -46,19 +48,19 @@ public class LoginRateLimitFilter extends OncePerRequestFilter {
         long now = Instant.now().toEpochMilli();
 
         AttemptBucket bucket = buckets.compute(ip, (key, existing) -> {
-            if (existing == null || (now - existing.windowStart()) > WINDOW_MS) {
-                return new AttemptBucket(new AtomicInteger(1), now);
+            if (existing == null || (now - existing.windowStart) > WINDOW_MS) {
+                return new AttemptBucket(now);
             }
-            existing.count().incrementAndGet();
+            existing.count.incrementAndGet();
             return existing;
         });
 
-        if (bucket.count().get() > MAX_ATTEMPTS) {
+        if (bucket.count.get() > MAX_ATTEMPTS) {
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            response.getWriter().write("""
-                    {"status":429,"message":"Muitas tentativas de login. Aguarde 1 minuto e tente novamente."}
-                    """);
+            response.getWriter().write(
+                    "{\"status\":429,\"message\":\"Muitas tentativas de login. Aguarde 1 minuto e tente novamente.\"}"
+            );
             return;
         }
 

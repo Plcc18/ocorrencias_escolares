@@ -8,10 +8,10 @@ import com.example.ocorrencias_escolares_api.repository.OccurrenceRepository;
 import com.example.ocorrencias_escolares_api.repository.TeacherRepository;
 import com.example.ocorrencias_escolares_api.service.TeacherService;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class TeacherServiceImpl implements TeacherService {
@@ -63,8 +63,8 @@ public class TeacherServiceImpl implements TeacherService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<Teacher> findAll(Pageable pageable) {
-        return repository.findAll(pageable);
+    public List<Teacher> findAll() {
+        return repository.findAll();
     }
 
     @Override
