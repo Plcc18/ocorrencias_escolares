@@ -1,6 +1,7 @@
 package com.example.ocorrencias_escolares_api.controller;
 
 import com.example.ocorrencias_escolares_api.dto.OccurrenceDTO;
+import com.example.ocorrencias_escolares_api.entity.Grade;
 import com.example.ocorrencias_escolares_api.entity.Occurrence;
 import com.example.ocorrencias_escolares_api.entity.Student;
 import com.example.ocorrencias_escolares_api.entity.Teacher;
@@ -46,11 +47,15 @@ class OccurrenceControllerTest {
 
     @BeforeEach
     void setUp() {
+        Grade grade = new Grade();
+        grade.setId(1L);
+        grade.setName("1º Desenvolvimento");
+
         Student student = new Student();
         student.setId(1L);
         student.setName("Pedro Lucas");
         student.setEmail("pedro@example.com");
-        student.setGrade("1º Ano");
+        student.setGrade(grade);
 
         Teacher teacher = new Teacher();
         teacher.setId(1L);

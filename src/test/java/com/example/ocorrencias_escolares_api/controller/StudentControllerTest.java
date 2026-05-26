@@ -1,6 +1,7 @@
 package com.example.ocorrencias_escolares_api.controller;
 
 import com.example.ocorrencias_escolares_api.dto.StudentDTO;
+import com.example.ocorrencias_escolares_api.entity.Grade;
 import com.example.ocorrencias_escolares_api.entity.Student;
 import com.example.ocorrencias_escolares_api.exception.BusinessException;
 import com.example.ocorrencias_escolares_api.exception.ResourceNotFoundException;
@@ -11,8 +12,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -38,25 +37,27 @@ class StudentControllerTest {
     @MockitoBean
     private StudentService studentService;
 
-    @MockitoBean
-    private org.modelmapper.ModelMapper modelMapper;
-
     private Student student;
     private StudentDTO studentDTO;
 
     @BeforeEach
     void setUp() {
+        Grade grade = new Grade();
+        grade.setId(1L);
+        grade.setName("1º Desenvolvimento");
+
         student = new Student();
         student.setId(1L);
         student.setEmail("pedro@example.com");
         student.setName("Pedro Lucas");
-        student.setGrade("1º Ano");
+        student.setGrade(grade);
 
         studentDTO = new StudentDTO();
         studentDTO.setId(1L);
         studentDTO.setEmail("pedro@example.com");
         studentDTO.setName("Pedro Lucas");
-        studentDTO.setGrade("1º Ano");
+        studentDTO.setGradeId(1L);
+        studentDTO.setGradeName("1º Desenvolvimento");
     }
 
     @Test
@@ -64,14 +65,15 @@ class StudentControllerTest {
     @WithMockUser(roles = "ADMIN")
     void create_asAdmin_returns201() throws Exception {
         when(studentService.create(any(StudentDTO.class))).thenReturn(student);
-        when(modelMapper.map(any(), any())).thenReturn(studentDTO);
 
         mockMvc.perform(post("/api/students")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(studentDTO)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.email").value("pedro@example.com"));
+                .andExpect(jsonPath("$.email").value("pedro@example.com"))
+                .andExpect(jsonPath("$.gradeId").value(1))
+                .andExpect(jsonPath("$.gradeName").value("1º Desenvolvimento"));
     }
 
     @Test
@@ -90,12 +92,12 @@ class StudentControllerTest {
     @WithMockUser(roles = "ADMIN")
     void findById_found() throws Exception {
         when(studentService.findById(1L)).thenReturn(student);
-        when(modelMapper.map(any(), any())).thenReturn(studentDTO);
 
         mockMvc.perform(get("/api/students/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.name").value("Pedro Lucas"));
+                .andExpect(jsonPath("$.name").value("Pedro Lucas"))
+                .andExpect(jsonPath("$.gradeName").value("1º Desenvolvimento"));
     }
 
     @Test
@@ -110,19 +112,17 @@ class StudentControllerTest {
                 .andExpect(jsonPath("$.message").value("Aluno não encontrado com id: 99"));
     }
 
-//    @Test
-//    @DisplayName("GET /api/students - retorna página de alunos")
-//    @WithMockUser(roles = "TEACHER")
-//    void findAll_returnsPaginatedList() throws Exception {
-//        when(studentService.findAll(any(Pageable.class)))
-//                .thenReturn(new PageImpl<>(List.of(student)));
-//        when(modelMapper.map(any(), any())).thenReturn(studentDTO);
-//
-//        mockMvc.perform(get("/api/students"))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.content").isArray())
-//                .andExpect(jsonPath("$.content[0].email").value("pedro@example.com"));
-//    }
+    @Test
+    @DisplayName("GET /api/students - lista todos os alunos")
+    @WithMockUser(roles = "TEACHER")
+    void findAll_returnsList() throws Exception {
+        when(studentService.findAll()).thenReturn(List.of(student));
+
+        mockMvc.perform(get("/api/students"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].email").value("pedro@example.com"));
+    }
 
     @Test
     @DisplayName("DELETE /api/students/{id} - ADMIN remove aluno sem ocorrências")
@@ -154,7 +154,7 @@ class StudentControllerTest {
         StudentDTO invalid = new StudentDTO();
         invalid.setEmail("nao-e-email");
         invalid.setName("Pedro");
-        invalid.setGrade("1º Ano");
+        invalid.setGradeId(1L);
 
         mockMvc.perform(post("/api/students")
                         .with(csrf())
@@ -162,5 +162,22 @@ class StudentControllerTest {
                         .content(objectMapper.writeValueAsString(invalid)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.email").exists());
+    }
+
+    @Test
+    @DisplayName("POST /api/students - gradeId ausente retorna 400")
+    @WithMockUser(roles = "ADMIN")
+    void create_missingGradeId_returns400() throws Exception {
+        StudentDTO invalid = new StudentDTO();
+        invalid.setEmail("pedro@example.com");
+        invalid.setName("Pedro");
+        // gradeId não informado (null)
+
+        mockMvc.perform(post("/api/students")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalid)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.gradeId").exists());
     }
 }

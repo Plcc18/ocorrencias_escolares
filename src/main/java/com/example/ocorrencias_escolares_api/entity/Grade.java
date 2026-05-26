@@ -2,33 +2,22 @@ package com.example.ocorrencias_escolares_api.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Entity
-@Table(name = "students")
+@Table(name = "grades")
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class Student extends AuditableEntity {
+public class Grade extends AuditableEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Email is mandatory")
+    @NotBlank
     @Size(max = 100)
     @Column(unique = true, nullable = false)
-    private String email;
-
-    @NotBlank(message = "Name is mandatory")
-    @Size(max = 100)
-    @Column(nullable = false)
     private String name;
-
-    @NotNull(message = "Grade is mandatory")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "grade_id", nullable = false)
-    private Grade grade;
 }

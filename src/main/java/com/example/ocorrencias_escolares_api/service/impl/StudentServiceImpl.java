@@ -1,15 +1,14 @@
 package com.example.ocorrencias_escolares_api.service.impl;
 
 import com.example.ocorrencias_escolares_api.dto.StudentDTO;
+import com.example.ocorrencias_escolares_api.entity.Grade;
 import com.example.ocorrencias_escolares_api.entity.Student;
 import com.example.ocorrencias_escolares_api.exception.BusinessException;
 import com.example.ocorrencias_escolares_api.exception.ResourceNotFoundException;
 import com.example.ocorrencias_escolares_api.repository.OccurrenceRepository;
 import com.example.ocorrencias_escolares_api.repository.StudentRepository;
+import com.example.ocorrencias_escolares_api.service.GradeService;
 import com.example.ocorrencias_escolares_api.service.StudentService;
-import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,14 +19,14 @@ public class StudentServiceImpl implements StudentService {
 
     private final StudentRepository repository;
     private final OccurrenceRepository occurrenceRepository;
-    private final ModelMapper modelMapper;
+    private final GradeService gradeService;
 
     public StudentServiceImpl(StudentRepository repository,
                               OccurrenceRepository occurrenceRepository,
-                              ModelMapper modelMapper) {
+                              GradeService gradeService) {
         this.repository = repository;
         this.occurrenceRepository = occurrenceRepository;
-        this.modelMapper = modelMapper;
+        this.gradeService = gradeService;
     }
 
     @Override
@@ -36,8 +35,12 @@ public class StudentServiceImpl implements StudentService {
         if (repository.existsByEmail(dto.getEmail())) {
             throw new BusinessException("Email já cadastrado para outro aluno: " + dto.getEmail());
         }
-        Student student = modelMapper.map(dto, Student.class);
-        student.setId(null);
+        Grade grade = gradeService.findById(dto.getGradeId());
+
+        Student student = new Student();
+        student.setEmail(dto.getEmail());
+        student.setName(dto.getName());
+        student.setGrade(grade);
         return repository.save(student);
     }
 
@@ -50,9 +53,11 @@ public class StudentServiceImpl implements StudentService {
                 .ifPresent(existing -> {
                     throw new BusinessException("Email já cadastrado para outro aluno: " + dto.getEmail());
                 });
+
+        Grade grade = gradeService.findById(dto.getGradeId());
         student.setEmail(dto.getEmail());
         student.setName(dto.getName());
-        student.setGrade(dto.getGrade());
+        student.setGrade(grade);
         return repository.save(student);
     }
 

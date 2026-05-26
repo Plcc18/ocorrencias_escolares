@@ -1,6 +1,7 @@
 package com.example.ocorrencias_escolares_api.service;
 
 import com.example.ocorrencias_escolares_api.dto.StudentDTO;
+import com.example.ocorrencias_escolares_api.entity.Grade;
 import com.example.ocorrencias_escolares_api.entity.Student;
 import com.example.ocorrencias_escolares_api.exception.BusinessException;
 import com.example.ocorrencias_escolares_api.exception.ResourceNotFoundException;
@@ -14,11 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,39 +33,45 @@ class StudentServiceTest {
     private OccurrenceRepository occurrenceRepository;
 
     @Mock
-    private ModelMapper modelMapper;
+    private GradeService gradeService;
 
     @InjectMocks
     private StudentServiceImpl service;
 
+    private Grade grade;
     private Student student;
     private StudentDTO dto;
 
     @BeforeEach
     void setUp() {
+        grade = new Grade();
+        grade.setId(1L);
+        grade.setName("1º Desenvolvimento");
+
         student = new Student();
         student.setId(1L);
         student.setEmail("pedro@example.com");
         student.setName("Pedro Lucas");
-        student.setGrade("1º Ano");
+        student.setGrade(grade);
 
         dto = new StudentDTO();
         dto.setEmail("pedro@example.com");
         dto.setName("Pedro Lucas");
-        dto.setGrade("1º Ano");
+        dto.setGradeId(1L);
     }
 
     @Test
     @DisplayName("create - sucesso quando email não existe")
     void create_success() {
         when(repository.existsByEmail(dto.getEmail())).thenReturn(false);
-        when(modelMapper.map(dto, Student.class)).thenReturn(student);
+        when(gradeService.findById(1L)).thenReturn(grade);
         when(repository.save(any(Student.class))).thenReturn(student);
 
         Student result = service.create(dto);
 
         assertThat(result).isNotNull();
         assertThat(result.getEmail()).isEqualTo(dto.getEmail());
+        assertThat(result.getGrade().getName()).isEqualTo("1º Desenvolvimento");
         verify(repository).save(any(Student.class));
     }
 
@@ -81,6 +83,20 @@ class StudentServiceTest {
         assertThatThrownBy(() -> service.create(dto))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Email já cadastrado");
+
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("create - lança ResourceNotFoundException quando grade não existe")
+    void create_gradeNotFound_throwsException() {
+        when(repository.existsByEmail(dto.getEmail())).thenReturn(false);
+        when(gradeService.findById(1L))
+                .thenThrow(new ResourceNotFoundException("Turma não encontrada com id: 1"));
+
+        assertThatThrownBy(() -> service.create(dto))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Turma");
 
         verify(repository, never()).save(any());
     }
@@ -105,17 +121,16 @@ class StudentServiceTest {
                 .hasMessageContaining("99");
     }
 
-//    @Test
-//    @DisplayName("findAll - retorna página de alunos")
-//    void findAll_returnPage() {
-//        Pageable pageable = PageRequest.of(0, 10);
-//        Page<Student> page = new PageImpl<>(List.of(student));
-//        when(repository.findAll(pageable)).thenReturn(page);
-//
-//        Page<Student> result = service.findAll(pageable);
-//
-//        assertThat(result.getContent()).hasSize(1);
-//    }
+    @Test
+    @DisplayName("findAll - retorna lista de alunos")
+    void findAll_returnsList() {
+        when(repository.findAll()).thenReturn(List.of(student));
+
+        var result = service.findAll();
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getEmail()).isEqualTo("pedro@example.com");
+    }
 
     @Test
     @DisplayName("delete - executa quando aluno existe e sem ocorrências vinculadas")

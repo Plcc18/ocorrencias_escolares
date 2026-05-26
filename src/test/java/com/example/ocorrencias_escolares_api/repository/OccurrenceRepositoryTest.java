@@ -1,5 +1,6 @@
 package com.example.ocorrencias_escolares_api.repository;
 
+import com.example.ocorrencias_escolares_api.entity.Grade;
 import com.example.ocorrencias_escolares_api.entity.Occurrence;
 import com.example.ocorrencias_escolares_api.entity.Student;
 import com.example.ocorrencias_escolares_api.entity.Teacher;
@@ -17,17 +18,6 @@ import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Testes de repositório usando @DataJpaTest com banco H2 em memória.
- * Valida as queries customizadas do OccurrenceRepository.
- *
- * Requisito: adicionar H2 como dependência de test no pom.xml:
- * <dependency>
- *     <groupId>com.h2database</groupId>
- *     <artifactId>h2</artifactId>
- *     <scope>test</scope>
- * </dependency>
- */
 @DataJpaTest
 class OccurrenceRepositoryTest {
 
@@ -46,16 +36,24 @@ class OccurrenceRepositoryTest {
 
     @BeforeEach
     void setUp() {
+        Grade grade1 = new Grade();
+        grade1.setName("1º Ano");
+        em.persist(grade1);
+
+        Grade grade2 = new Grade();
+        grade2.setName("2º Ano");
+        em.persist(grade2);
+
         student1 = new Student();
         student1.setEmail("pedro@example.com");
         student1.setName("Pedro Lucas");
-        student1.setGrade("1º Ano");
+        student1.setGrade(grade1);
         em.persist(student1);
 
         student2 = new Student();
         student2.setEmail("ana@example.com");
         student2.setName("Ana Silva");
-        student2.setGrade("2º Ano");
+        student2.setGrade(grade2);
         em.persist(student2);
 
         teacher1 = new Teacher();
@@ -129,7 +127,7 @@ class OccurrenceRepositoryTest {
                 LocalDate.of(2025, 3, 1), null,
                 PageRequest.of(0, 10));
 
-        assertThat(result.getTotalElements()).isEqualTo(2); // occ2 e occ3
+        assertThat(result.getTotalElements()).isEqualTo(2);
         assertThat(result.getContent())
                 .allMatch(o -> !o.getOccurrenceDate().isBefore(LocalDate.of(2025, 3, 1)));
     }
@@ -143,7 +141,7 @@ class OccurrenceRepositoryTest {
                 LocalDate.of(2025, 3, 31),
                 PageRequest.of(0, 10));
 
-        assertThat(result.getTotalElements()).isEqualTo(2); // occ1 e occ2
+        assertThat(result.getTotalElements()).isEqualTo(2);
     }
 
     @Test
@@ -165,10 +163,14 @@ class OccurrenceRepositoryTest {
     @Test
     @DisplayName("existsByStudentId - retorna false para aluno sem ocorrências")
     void existsByStudentId_false() {
+        Grade grade3 = new Grade();
+        grade3.setName("3º Ano");
+        em.persist(grade3);
+
         Student outro = new Student();
         outro.setEmail("outro@example.com");
         outro.setName("Outro Aluno");
-        outro.setGrade("3º Ano");
+        outro.setGrade(grade3);
         em.persist(outro);
         em.flush();
 
