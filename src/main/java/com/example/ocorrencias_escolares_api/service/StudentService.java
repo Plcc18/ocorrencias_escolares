@@ -11,6 +11,7 @@ public interface StudentService {
     Student create(StudentDTO dto);
     Student update(Long id, StudentDTO dto);
     Student findById(Long id);
-    List<Student> findAll();
+    Page<Student> findAll(String name, Long gradeId, String status, Pageable pageable);
+    List<Student> findByGradeId(Long gradeId);
     void delete(Long id);
 }

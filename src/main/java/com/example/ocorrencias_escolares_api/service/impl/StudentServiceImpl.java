@@ -9,6 +9,8 @@ import com.example.ocorrencias_escolares_api.repository.OccurrenceRepository;
 import com.example.ocorrencias_escolares_api.repository.StudentRepository;
 import com.example.ocorrencias_escolares_api.service.GradeService;
 import com.example.ocorrencias_escolares_api.service.StudentService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,15 +34,17 @@ public class StudentServiceImpl implements StudentService {
     @Override
     @Transactional
     public Student create(StudentDTO dto) {
-        if (repository.existsByEmail(dto.getEmail())) {
+        if (dto.getEmail() != null && !dto.getEmail().isBlank()
+                && repository.existsByEmail(dto.getEmail())) {
             throw new BusinessException("Email já cadastrado para outro aluno: " + dto.getEmail());
+        }
+        if (repository.existsByEnrollment(dto.getEnrollment())) {
+            throw new BusinessException("Matrícula já cadastrada: " + dto.getEnrollment());
         }
         Grade grade = gradeService.findById(dto.getGradeId());
 
         Student student = new Student();
-        student.setEmail(dto.getEmail());
-        student.setName(dto.getName());
-        student.setGrade(grade);
+        fillFromDTO(student, dto, grade);
         return repository.save(student);
     }
 
@@ -48,16 +52,20 @@ public class StudentServiceImpl implements StudentService {
     @Transactional
     public Student update(Long id, StudentDTO dto) {
         Student student = findById(id);
-        repository.findByEmail(dto.getEmail())
-                .filter(existing -> !existing.getId().equals(id))
-                .ifPresent(existing -> {
-                    throw new BusinessException("Email já cadastrado para outro aluno: " + dto.getEmail());
-                });
+
+        if (dto.getEmail() != null && !dto.getEmail().isBlank()) {
+            repository.findByEmail(dto.getEmail())
+                    .filter(existing -> !existing.getId().equals(id))
+                    .ifPresent(existing -> {
+                        throw new BusinessException("Email já cadastrado para outro aluno: " + dto.getEmail());
+                    });
+        }
+        if (repository.existsByEnrollmentAndIdNot(dto.getEnrollment(), id)) {
+            throw new BusinessException("Matrícula já cadastrada: " + dto.getEnrollment());
+        }
 
         Grade grade = gradeService.findById(dto.getGradeId());
-        student.setEmail(dto.getEmail());
-        student.setName(dto.getName());
-        student.setGrade(grade);
+        fillFromDTO(student, dto, grade);
         return repository.save(student);
     }
 
@@ -70,8 +78,19 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Student> findAll() {
-        return repository.findAll();
+    public Page<Student> findAll(String name, Long gradeId, String status, Pageable pageable) {
+        return repository.findWithFilters(
+                (name != null && name.isBlank()) ? null : name,
+                gradeId,
+                (status != null && status.isBlank()) ? null : status,
+                pageable
+        );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Student> findByGradeId(Long gradeId) {
+        return repository.findByGradeId(gradeId);
     }
 
     @Override
@@ -86,5 +105,20 @@ public class StudentServiceImpl implements StudentService {
                             "Remova as ocorrências antes de excluir o aluno.");
         }
         repository.deleteById(id);
+    }
+
+    private void fillFromDTO(Student student, StudentDTO dto, Grade grade) {
+        student.setName(dto.getName());
+        student.setEmail(dto.getEmail());
+        student.setEnrollment(dto.getEnrollment());
+        student.setGrade(grade);
+        student.setCourse(dto.getCourse());
+        student.setShift(dto.getShift());
+        student.setStatus(dto.getStatus() != null ? dto.getStatus() : "ATIVO");
+        student.setBirthDate(dto.getBirthDate());
+        student.setGuardian(dto.getGuardian());
+        student.setGuardianPhone(dto.getGuardianPhone());
+        student.setGuardianEmail(dto.getGuardianEmail());
+        student.setNotes(dto.getNotes());
     }
 }

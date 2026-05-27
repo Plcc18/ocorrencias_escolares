@@ -52,7 +52,7 @@ public class OccurrenceController {
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     @Operation(summary = "Listar ocorrências com filtros opcionais (paginado)",
-            description = "Filtros disponíveis: studentId, teacherId, occurrenceType, startDate, endDate")
+            description = "Filtros disponíveis: studentId, teacherId, gradeId, occurrenceType, startDate, endDate")
     public ResponseEntity<Page<OccurrenceDTO>> findAll(
             OccurrenceFilterDTO filter,
             @ParameterObject
@@ -102,6 +102,9 @@ public class OccurrenceController {
         dto.setStudentName(o.getStudent().getName());
         dto.setTeacherId(o.getTeacher().getId());
         dto.setTeacherName(o.getTeacher().getName());
+        // gradeId e gradeName derivados do aluno
+        dto.setGradeId(o.getStudent().getGrade().getId());
+        dto.setGradeName(o.getStudent().getGrade().getName());
         dto.setCreatedAt(o.getCreatedAt());
         dto.setUpdatedAt(o.getUpdatedAt());
         return dto;

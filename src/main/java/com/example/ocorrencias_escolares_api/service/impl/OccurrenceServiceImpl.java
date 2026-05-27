@@ -84,6 +84,7 @@ public class OccurrenceServiceImpl implements OccurrenceService {
         return repository.findWithFilters(
                 filter.getStudentId(),
                 filter.getTeacherId(),
+                filter.getGradeId(),
                 filter.getOccurrenceType(),
                 filter.getStartDate(),
                 filter.getEndDate(),

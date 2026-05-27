@@ -6,6 +6,10 @@ import com.example.ocorrencias_escolares_api.service.StudentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,13 +51,22 @@ public class StudentController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    @Operation(summary = "Listar alunos")
-    public ResponseEntity<List<StudentDTO>> findAll() {
-        List<StudentDTO> list = service.findAll()
-                .stream()
-                .map(this::toDTO)
-                .toList();
-        return ResponseEntity.ok(list);
+    @Operation(summary = "Listar alunos (paginado, com filtros opcionais)")
+    public ResponseEntity<Page<StudentDTO>> findAll(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Long gradeId,
+            @RequestParam(required = false) String status,
+            @PageableDefault(size = 15, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
+        return ResponseEntity.ok(service.findAll(name, gradeId, status, pageable).map(this::toDTO));
+    }
+
+    @GetMapping("/grade/{gradeId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @Operation(summary = "Listar alunos de uma turma específica")
+    public ResponseEntity<List<StudentDTO>> findByGrade(@PathVariable Long gradeId) {
+        return ResponseEntity.ok(
+                service.findByGradeId(gradeId).stream().map(this::toDTO).toList()
+        );
     }
 
     @DeleteMapping("/{id}")
@@ -64,13 +77,22 @@ public class StudentController {
         return ResponseEntity.noContent().build();
     }
 
-    private StudentDTO toDTO(Student student) {
+    private StudentDTO toDTO(Student s) {
         StudentDTO dto = new StudentDTO();
-        dto.setId(student.getId());
-        dto.setEmail(student.getEmail());
-        dto.setName(student.getName());
-        dto.setGradeId(student.getGrade().getId());
-        dto.setGradeName(student.getGrade().getName());
+        dto.setId(s.getId());
+        dto.setName(s.getName());
+        dto.setEmail(s.getEmail());
+        dto.setEnrollment(s.getEnrollment());
+        dto.setGradeId(s.getGrade().getId());
+        dto.setGradeName(s.getGrade().getName());
+        dto.setCourse(s.getCourse());
+        dto.setShift(s.getShift());
+        dto.setStatus(s.getStatus());
+        dto.setBirthDate(s.getBirthDate());
+        dto.setGuardian(s.getGuardian());
+        dto.setGuardianPhone(s.getGuardianPhone());
+        dto.setGuardianEmail(s.getGuardianEmail());
+        dto.setNotes(s.getNotes());
         return dto;
     }
 }

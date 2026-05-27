@@ -31,6 +31,8 @@ public class GradeServiceImpl implements GradeService {
         }
         Grade grade = new Grade();
         grade.setName(dto.getName());
+        grade.setCourse(dto.getCourse());
+        grade.setShift(dto.getShift());
         return repository.save(grade);
     }
 
@@ -42,6 +44,8 @@ public class GradeServiceImpl implements GradeService {
             throw new BusinessException("Já existe uma turma com o nome: " + dto.getName());
         }
         grade.setName(dto.getName());
+        grade.setCourse(dto.getCourse());
+        grade.setShift(dto.getShift());
         return repository.save(grade);
     }
 
@@ -56,6 +60,28 @@ public class GradeServiceImpl implements GradeService {
     @Transactional(readOnly = true)
     public List<Grade> findAll() {
         return repository.findAll();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<GradeDTO> findAllWithStudentCount() {
+        return repository.findAll().stream().map(g -> {
+            GradeDTO dto = new GradeDTO();
+            dto.setId(g.getId());
+            dto.setName(g.getName());
+            dto.setCourse(g.getCourse());
+            dto.setShift(g.getShift());
+            dto.setStudentCount(studentRepository.countByGradeId(g.getId()));
+            dto.setCreatedAt(g.getCreatedAt());
+            dto.setUpdatedAt(g.getUpdatedAt());
+            return dto;
+        }).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countStudents(Long gradeId) {
+        return studentRepository.countByGradeId(gradeId);
     }
 
     @Override

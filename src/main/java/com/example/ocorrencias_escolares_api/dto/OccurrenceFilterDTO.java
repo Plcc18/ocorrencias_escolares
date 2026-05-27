@@ -16,6 +16,9 @@ public class OccurrenceFilterDTO {
     @Schema(description = "Filtrar por ID do professor", example = "2")
     private Long teacherId;
 
+    @Schema(description = "Filtrar por ID da turma", example = "3")
+    private Long gradeId;
+
     @Schema(description = "Filtrar por tipo de ocorrência", example = "DISCIPLINA")
     private OccurrenceType occurrenceType;
 

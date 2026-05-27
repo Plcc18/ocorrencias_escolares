@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class OccurrenceDTO {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    @Schema(description = "ID da ocorrência (gerado automaticamente)", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "ID da ocorrência (gerado automaticamente)", accessMode = Schema.AccessMode.READ_ONLY)
     private Long id;
 
     @NotBlank(message = "Description is mandatory")
@@ -41,9 +41,17 @@ public class OccurrenceDTO {
     @Schema(description = "Nome do professor (retornado na leitura)", accessMode = Schema.AccessMode.READ_ONLY)
     private String teacherName;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @Schema(description = "ID da turma do aluno (retornado na leitura)", accessMode = Schema.AccessMode.READ_ONLY)
+    private Long gradeId;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @Schema(description = "Nome da turma do aluno (retornado na leitura)", accessMode = Schema.AccessMode.READ_ONLY)
+    private String gradeName;
+
     @NotNull(message = "Occurrence type is mandatory")
     @Schema(description = "Tipo da ocorrência", example = "DISCIPLINA",
-            allowableValues = {"DISCIPLINA", "FALTA", "ELOGIO", "ADVERTENCIA", "SUSPENSAO", "OUTRO"})
+            allowableValues = {"DISCIPLINA", "FALTA", "ELOGIO", "ADVERTENCIA", "SUSPENSAO", "ATRASO", "CELULAR", "OUTRO"})
     private OccurrenceType occurrenceType;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

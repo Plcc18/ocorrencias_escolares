@@ -10,5 +10,7 @@ public interface GradeService {
     Grade update(Long id, GradeDTO dto);
     Grade findById(Long id);
     List<Grade> findAll();
+    List<GradeDTO> findAllWithStudentCount();
+    long countStudents(Long gradeId);
     void delete(Long id);
 }

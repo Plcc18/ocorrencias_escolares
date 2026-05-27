@@ -6,5 +6,7 @@ public enum OccurrenceType {
     ELOGIO,
     ADVERTENCIA,
     SUSPENSAO,
+    ATRASO,
+    CELULAR,
     OUTRO
 }

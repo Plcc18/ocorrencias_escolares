@@ -26,6 +26,7 @@ public interface OccurrenceRepository extends JpaRepository<Occurrence, Long> {
             SELECT o FROM Occurrence o
             WHERE (:studentId IS NULL OR o.student.id = :studentId)
               AND (:teacherId IS NULL OR o.teacher.id = :teacherId)
+              AND (:gradeId IS NULL OR o.student.grade.id = :gradeId)
               AND (:occurrenceType IS NULL OR o.occurrenceType = :occurrenceType)
               AND (:startDate IS NULL OR o.occurrenceDate >= :startDate)
               AND (:endDate IS NULL OR o.occurrenceDate <= :endDate)
@@ -33,6 +34,7 @@ public interface OccurrenceRepository extends JpaRepository<Occurrence, Long> {
     Page<Occurrence> findWithFilters(
             @Param("studentId") Long studentId,
             @Param("teacherId") Long teacherId,
+            @Param("gradeId") Long gradeId,
             @Param("occurrenceType") OccurrenceType occurrenceType,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,

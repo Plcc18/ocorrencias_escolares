@@ -6,7 +6,6 @@ import com.example.ocorrencias_escolares_api.service.GradeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,11 +19,9 @@ import java.util.List;
 public class GradeController {
 
     private final GradeService service;
-    private final ModelMapper modelMapper;
 
-    public GradeController(GradeService service, ModelMapper modelMapper) {
+    public GradeController(GradeService service) {
         this.service = service;
-        this.modelMapper = modelMapper;
     }
 
     @PostMapping
@@ -32,7 +29,7 @@ public class GradeController {
     @Operation(summary = "Cadastrar nova turma/série")
     public ResponseEntity<GradeDTO> create(@Valid @RequestBody GradeDTO dto) {
         Grade grade = service.create(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(toDTO(grade));
+        return ResponseEntity.status(HttpStatus.CREATED).body(toDTO(grade, 0L));
     }
 
     @PutMapping("/{id}")
@@ -40,24 +37,22 @@ public class GradeController {
     @Operation(summary = "Atualizar turma/série")
     public ResponseEntity<GradeDTO> update(@PathVariable Long id, @Valid @RequestBody GradeDTO dto) {
         Grade grade = service.update(id, dto);
-        return ResponseEntity.ok(toDTO(grade));
+        return ResponseEntity.ok(toDTO(grade, service.countStudents(id)));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     @Operation(summary = "Buscar turma por ID")
     public ResponseEntity<GradeDTO> findById(@PathVariable Long id) {
-        return ResponseEntity.ok(toDTO(service.findById(id)));
+        Grade grade = service.findById(id);
+        return ResponseEntity.ok(toDTO(grade, service.countStudents(id)));
     }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     @Operation(summary = "Listar todas as turmas")
     public ResponseEntity<List<GradeDTO>> findAll() {
-        List<GradeDTO> list = service.findAll()
-                .stream()
-                .map(this::toDTO)
-                .toList();
+        List<GradeDTO> list = service.findAllWithStudentCount();
         return ResponseEntity.ok(list);
     }
 
@@ -69,10 +64,13 @@ public class GradeController {
         return ResponseEntity.noContent().build();
     }
 
-    private GradeDTO toDTO(Grade grade) {
+    private GradeDTO toDTO(Grade grade, Long studentCount) {
         GradeDTO dto = new GradeDTO();
         dto.setId(grade.getId());
         dto.setName(grade.getName());
+        dto.setCourse(grade.getCourse());
+        dto.setShift(grade.getShift());
+        dto.setStudentCount(studentCount);
         dto.setCreatedAt(grade.getCreatedAt());
         dto.setUpdatedAt(grade.getUpdatedAt());
         return dto;
