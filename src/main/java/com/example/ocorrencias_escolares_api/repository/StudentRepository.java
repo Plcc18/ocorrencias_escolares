@@ -20,11 +20,11 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     List<Student> findByGradeId(Long gradeId);
 
     @Query("""
-            SELECT s FROM Student s
-            WHERE (:name IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :name, '%')))
-              AND (:gradeId IS NULL OR s.grade.id = :gradeId)
-              AND (:status IS NULL OR s.status = :status)
-            """)
+        SELECT s FROM Student s
+        WHERE (:name IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', CAST(:name AS string), '%')))
+          AND (:gradeId IS NULL OR s.grade.id = :gradeId)
+          AND (:status IS NULL OR s.status = :status)
+        """)
     Page<Student> findWithFilters(
             @Param("name") String name,
             @Param("gradeId") Long gradeId,
