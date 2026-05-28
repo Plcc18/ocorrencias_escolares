@@ -3,6 +3,7 @@ package com.example.ocorrencias_escolares_api.service;
 import com.example.ocorrencias_escolares_api.dto.StudentDTO;
 import com.example.ocorrencias_escolares_api.entity.Grade;
 import com.example.ocorrencias_escolares_api.entity.Student;
+import com.example.ocorrencias_escolares_api.enums.GradeShift;
 import com.example.ocorrencias_escolares_api.exception.BusinessException;
 import com.example.ocorrencias_escolares_api.exception.ResourceNotFoundException;
 import com.example.ocorrencias_escolares_api.repository.OccurrenceRepository;
@@ -15,6 +16,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 import java.util.Optional;
@@ -47,17 +50,25 @@ class StudentServiceTest {
         grade = new Grade();
         grade.setId(1L);
         grade.setName("1º Desenvolvimento");
+        grade.setCourse("Desenvolvimento de Sistemas");
+        grade.setShift(GradeShift.MANHA);
 
         student = new Student();
         student.setId(1L);
         student.setEmail("pedro@example.com");
         student.setName("Pedro Lucas");
+        student.setEnrollment("2024001");
         student.setGrade(grade);
+        student.setCourse("Desenvolvimento de Sistemas");
+        student.setShift(GradeShift.MANHA);
 
         dto = new StudentDTO();
         dto.setEmail("pedro@example.com");
         dto.setName("Pedro Lucas");
+        dto.setEnrollment("2024001");
         dto.setGradeId(1L);
+        dto.setCourse("Desenvolvimento de Sistemas");
+        dto.setShift(GradeShift.MANHA);
     }
 
     @Test
@@ -124,12 +135,14 @@ class StudentServiceTest {
     @Test
     @DisplayName("findAll - retorna lista de alunos")
     void findAll_returnsList() {
-        when(repository.findAll()).thenReturn(List.of(student));
+        var pageable = PageRequest.of(0, 10);
+        when(repository.findWithFilters(null, null, null, pageable))
+                .thenReturn(new PageImpl<>(List.of(student), pageable, 1));
 
-        var result = service.findAll();
+        var result = service.findAll(null, null, null, pageable);
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getEmail()).isEqualTo("pedro@example.com");
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getEmail()).isEqualTo("pedro@example.com");
     }
 
     @Test

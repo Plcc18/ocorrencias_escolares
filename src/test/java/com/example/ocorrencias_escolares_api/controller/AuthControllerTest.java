@@ -4,6 +4,9 @@ import com.example.ocorrencias_escolares_api.dto.LoginRequest;
 import com.example.ocorrencias_escolares_api.dto.RegisterRequest;
 import com.example.ocorrencias_escolares_api.entity.User;
 import com.example.ocorrencias_escolares_api.enums.Role;
+import com.example.ocorrencias_escolares_api.config.LoginRateLimitFilter;
+import com.example.ocorrencias_escolares_api.config.SecurityConfig;
+import com.example.ocorrencias_escolares_api.security.CustomUserDetailsService;
 import com.example.ocorrencias_escolares_api.security.JwtTokenProvider;
 import com.example.ocorrencias_escolares_api.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,6 +15,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -27,6 +32,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AuthController.class)
+@Import({SecurityConfig.class, LoginRateLimitFilter.class})
 class AuthControllerTest {
 
     @Autowired
@@ -40,6 +46,12 @@ class AuthControllerTest {
 
     @MockitoBean
     private JwtTokenProvider jwtTokenProvider;
+
+    @MockitoBean
+    private CustomUserDetailsService customUserDetailsService;
+
+    @MockitoBean
+    private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
     @MockitoBean
     private UserService userService;

@@ -2,9 +2,11 @@ package com.example.ocorrencias_escolares_api.service;
 
 import com.example.ocorrencias_escolares_api.dto.OccurrenceDTO;
 import com.example.ocorrencias_escolares_api.dto.OccurrenceFilterDTO;
+import com.example.ocorrencias_escolares_api.entity.Grade;
 import com.example.ocorrencias_escolares_api.entity.Occurrence;
 import com.example.ocorrencias_escolares_api.entity.Student;
 import com.example.ocorrencias_escolares_api.entity.Teacher;
+import com.example.ocorrencias_escolares_api.enums.GradeShift;
 import com.example.ocorrencias_escolares_api.enums.OccurrenceType;
 import com.example.ocorrencias_escolares_api.exception.ResourceNotFoundException;
 import com.example.ocorrencias_escolares_api.repository.OccurrenceRepository;
@@ -48,14 +50,24 @@ class OccurrenceServiceTest {
     private Teacher teacher;
     private Occurrence occurrence;
     private OccurrenceDTO dto;
+    private Grade grade;
 
     @BeforeEach
     void setUp() {
+        grade = new Grade();
+        grade.setId(1L);
+        grade.setName("1º Ano");
+        grade.setCourse("Ensino Médio");
+        grade.setShift(GradeShift.MANHA);
+
         student = new Student();
         student.setId(1L);
         student.setName("Pedro Lucas");
         student.setEmail("pedro@example.com");
-        student.setGrade("1º Ano");
+        student.setEnrollment("2024001");
+        student.setGrade(grade);
+        student.setCourse("Ensino Médio");
+        student.setShift(GradeShift.MANHA);
 
         teacher = new Teacher();
         teacher.setId(1L);
@@ -132,7 +144,7 @@ class OccurrenceServiceTest {
         filter.setStudentId(1L);
         Page<Occurrence> page = new PageImpl<>(List.of(occurrence));
 
-        when(repository.findWithFilters(1L, null, null, null, null, pageable)).thenReturn(page);
+        when(repository.findWithFilters(1L, null, null, null, null, null, pageable)).thenReturn(page);
 
         Page<Occurrence> result = service.findWithFilters(filter, pageable);
 

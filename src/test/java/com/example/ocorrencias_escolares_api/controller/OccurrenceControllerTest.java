@@ -1,12 +1,17 @@
 package com.example.ocorrencias_escolares_api.controller;
 
 import com.example.ocorrencias_escolares_api.dto.OccurrenceDTO;
+import com.example.ocorrencias_escolares_api.config.LoginRateLimitFilter;
+import com.example.ocorrencias_escolares_api.config.SecurityConfig;
 import com.example.ocorrencias_escolares_api.entity.Grade;
 import com.example.ocorrencias_escolares_api.entity.Occurrence;
 import com.example.ocorrencias_escolares_api.entity.Student;
 import com.example.ocorrencias_escolares_api.entity.Teacher;
+import com.example.ocorrencias_escolares_api.enums.GradeShift;
 import com.example.ocorrencias_escolares_api.enums.OccurrenceType;
 import com.example.ocorrencias_escolares_api.exception.ResourceNotFoundException;
+import com.example.ocorrencias_escolares_api.security.CustomUserDetailsService;
+import com.example.ocorrencias_escolares_api.security.JwtTokenProvider;
 import com.example.ocorrencias_escolares_api.service.OccurrenceService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +19,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
@@ -31,6 +38,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(OccurrenceController.class)
+@Import({SecurityConfig.class, LoginRateLimitFilter.class})
 class OccurrenceControllerTest {
 
     @Autowired
@@ -42,6 +50,15 @@ class OccurrenceControllerTest {
     @MockitoBean
     private OccurrenceService occurrenceService;
 
+    @MockitoBean
+    private JwtTokenProvider jwtTokenProvider;
+
+    @MockitoBean
+    private CustomUserDetailsService customUserDetailsService;
+
+    @MockitoBean
+    private JpaMetamodelMappingContext jpaMetamodelMappingContext;
+
     private Occurrence occurrence;
     private OccurrenceDTO dto;
 
@@ -50,12 +67,17 @@ class OccurrenceControllerTest {
         Grade grade = new Grade();
         grade.setId(1L);
         grade.setName("1º Desenvolvimento");
+        grade.setCourse("Desenvolvimento de Sistemas");
+        grade.setShift(GradeShift.MANHA);
 
         Student student = new Student();
         student.setId(1L);
         student.setName("Pedro Lucas");
         student.setEmail("pedro@example.com");
+        student.setEnrollment("2024001");
         student.setGrade(grade);
+        student.setCourse("Desenvolvimento de Sistemas");
+        student.setShift(GradeShift.MANHA);
 
         Teacher teacher = new Teacher();
         teacher.setId(1L);

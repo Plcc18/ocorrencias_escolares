@@ -4,6 +4,7 @@ import com.example.ocorrencias_escolares_api.entity.Grade;
 import com.example.ocorrencias_escolares_api.entity.Occurrence;
 import com.example.ocorrencias_escolares_api.entity.Student;
 import com.example.ocorrencias_escolares_api.entity.Teacher;
+import com.example.ocorrencias_escolares_api.enums.GradeShift;
 import com.example.ocorrencias_escolares_api.enums.OccurrenceType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,7 +19,10 @@ import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
+@DataJpaTest(properties = {
+        "spring.flyway.enabled=false",
+        "spring.jpa.hibernate.ddl-auto=create-drop"
+})
 class OccurrenceRepositoryTest {
 
     @Autowired
@@ -38,22 +42,32 @@ class OccurrenceRepositoryTest {
     void setUp() {
         Grade grade1 = new Grade();
         grade1.setName("1º Ano");
+        grade1.setCourse("Ensino Médio");
+        grade1.setShift(GradeShift.MANHA);
         em.persist(grade1);
 
         Grade grade2 = new Grade();
         grade2.setName("2º Ano");
+        grade2.setCourse("Ensino Médio");
+        grade2.setShift(GradeShift.TARDE);
         em.persist(grade2);
 
         student1 = new Student();
         student1.setEmail("pedro@example.com");
         student1.setName("Pedro Lucas");
+        student1.setEnrollment("2024001");
         student1.setGrade(grade1);
+        student1.setCourse("Ensino Médio");
+        student1.setShift(GradeShift.MANHA);
         em.persist(student1);
 
         student2 = new Student();
         student2.setEmail("ana@example.com");
         student2.setName("Ana Silva");
+        student2.setEnrollment("2024002");
         student2.setGrade(grade2);
+        student2.setCourse("Ensino Médio");
+        student2.setShift(GradeShift.TARDE);
         em.persist(student2);
 
         teacher1 = new Teacher();
@@ -93,7 +107,7 @@ class OccurrenceRepositoryTest {
     @DisplayName("findWithFilters - sem filtros retorna todas as ocorrências")
     void findWithFilters_noFilters_returnsAll() {
         Page<Occurrence> result = repository.findWithFilters(
-                null, null, null, null, null, PageRequest.of(0, 10));
+                null, null, null, null, null, null, PageRequest.of(0, 10));
 
         assertThat(result.getTotalElements()).isEqualTo(3);
     }
@@ -102,7 +116,7 @@ class OccurrenceRepositoryTest {
     @DisplayName("findWithFilters - filtro por studentId retorna apenas ocorrências do aluno")
     void findWithFilters_byStudentId() {
         Page<Occurrence> result = repository.findWithFilters(
-                student1.getId(), null, null, null, null, PageRequest.of(0, 10));
+                student1.getId(), null, null, null, null, null, PageRequest.of(0, 10));
 
         assertThat(result.getTotalElements()).isEqualTo(2);
         assertThat(result.getContent())
@@ -113,7 +127,7 @@ class OccurrenceRepositoryTest {
     @DisplayName("findWithFilters - filtro por occurrenceType retorna somente o tipo correto")
     void findWithFilters_byOccurrenceType() {
         Page<Occurrence> result = repository.findWithFilters(
-                null, null, OccurrenceType.ELOGIO, null, null, PageRequest.of(0, 10));
+                null, null, null, OccurrenceType.ELOGIO, null, null, PageRequest.of(0, 10));
 
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent().get(0).getOccurrenceType()).isEqualTo(OccurrenceType.ELOGIO);
@@ -123,7 +137,7 @@ class OccurrenceRepositoryTest {
     @DisplayName("findWithFilters - filtro por data inicial exclui registros anteriores")
     void findWithFilters_byStartDate() {
         Page<Occurrence> result = repository.findWithFilters(
-                null, null, null,
+                null, null, null, null,
                 LocalDate.of(2025, 3, 1), null,
                 PageRequest.of(0, 10));
 
@@ -136,7 +150,7 @@ class OccurrenceRepositoryTest {
     @DisplayName("findWithFilters - filtro por intervalo de datas")
     void findWithFilters_byDateRange() {
         Page<Occurrence> result = repository.findWithFilters(
-                null, null, null,
+                null, null, null, null,
                 LocalDate.of(2025, 1, 1),
                 LocalDate.of(2025, 3, 31),
                 PageRequest.of(0, 10));
@@ -148,7 +162,7 @@ class OccurrenceRepositoryTest {
     @DisplayName("findWithFilters - combinação de filtros studentId + tipo")
     void findWithFilters_studentIdAndType() {
         Page<Occurrence> result = repository.findWithFilters(
-                student1.getId(), null, OccurrenceType.FALTA, null, null, PageRequest.of(0, 10));
+                student1.getId(), null, null, OccurrenceType.FALTA, null, null, PageRequest.of(0, 10));
 
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent().get(0).getDescription()).isEqualTo("Falta injustificada");
@@ -165,12 +179,17 @@ class OccurrenceRepositoryTest {
     void existsByStudentId_false() {
         Grade grade3 = new Grade();
         grade3.setName("3º Ano");
+        grade3.setCourse("Ensino Médio");
+        grade3.setShift(GradeShift.NOITE);
         em.persist(grade3);
 
         Student outro = new Student();
         outro.setEmail("outro@example.com");
         outro.setName("Outro Aluno");
+        outro.setEnrollment("2024003");
         outro.setGrade(grade3);
+        outro.setCourse("Ensino Médio");
+        outro.setShift(GradeShift.NOITE);
         em.persist(outro);
         em.flush();
 

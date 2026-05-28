@@ -49,7 +49,7 @@ public class AuthController {
         );
         User user = (User) authentication.getPrincipal();
         String token = jwtTokenProvider.generateToken(authentication);
-        return ResponseEntity.ok(new AuthResponse(token, user.getId(), user.getEmail(), user.getRole()));
+        return ResponseEntity.ok(new AuthResponse(token, user.getId(), user.getEmail(), user.getUsername(), user.getRole()));
     }
 
     @PostMapping("/register")

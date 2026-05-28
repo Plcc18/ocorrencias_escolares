@@ -1,10 +1,15 @@
 package com.example.ocorrencias_escolares_api.controller;
 
 import com.example.ocorrencias_escolares_api.dto.StudentDTO;
+import com.example.ocorrencias_escolares_api.config.LoginRateLimitFilter;
+import com.example.ocorrencias_escolares_api.config.SecurityConfig;
 import com.example.ocorrencias_escolares_api.entity.Grade;
 import com.example.ocorrencias_escolares_api.entity.Student;
+import com.example.ocorrencias_escolares_api.enums.GradeShift;
 import com.example.ocorrencias_escolares_api.exception.BusinessException;
 import com.example.ocorrencias_escolares_api.exception.ResourceNotFoundException;
+import com.example.ocorrencias_escolares_api.security.CustomUserDetailsService;
+import com.example.ocorrencias_escolares_api.security.JwtTokenProvider;
 import com.example.ocorrencias_escolares_api.service.StudentService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +17,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -26,6 +35,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(StudentController.class)
+@Import({SecurityConfig.class, LoginRateLimitFilter.class})
 class StudentControllerTest {
 
     @Autowired
@@ -37,6 +47,15 @@ class StudentControllerTest {
     @MockitoBean
     private StudentService studentService;
 
+    @MockitoBean
+    private JwtTokenProvider jwtTokenProvider;
+
+    @MockitoBean
+    private CustomUserDetailsService customUserDetailsService;
+
+    @MockitoBean
+    private JpaMetamodelMappingContext jpaMetamodelMappingContext;
+
     private Student student;
     private StudentDTO studentDTO;
 
@@ -45,19 +64,27 @@ class StudentControllerTest {
         Grade grade = new Grade();
         grade.setId(1L);
         grade.setName("1º Desenvolvimento");
+        grade.setCourse("Desenvolvimento de Sistemas");
+        grade.setShift(GradeShift.MANHA);
 
         student = new Student();
         student.setId(1L);
         student.setEmail("pedro@example.com");
         student.setName("Pedro Lucas");
+        student.setEnrollment("2024001");
         student.setGrade(grade);
+        student.setCourse("Desenvolvimento de Sistemas");
+        student.setShift(GradeShift.MANHA);
 
         studentDTO = new StudentDTO();
         studentDTO.setId(1L);
         studentDTO.setEmail("pedro@example.com");
         studentDTO.setName("Pedro Lucas");
+        studentDTO.setEnrollment("2024001");
         studentDTO.setGradeId(1L);
         studentDTO.setGradeName("1º Desenvolvimento");
+        studentDTO.setCourse("Desenvolvimento de Sistemas");
+        studentDTO.setShift(GradeShift.MANHA);
     }
 
     @Test
@@ -116,12 +143,13 @@ class StudentControllerTest {
     @DisplayName("GET /api/students - lista todos os alunos")
     @WithMockUser(roles = "TEACHER")
     void findAll_returnsList() throws Exception {
-        when(studentService.findAll()).thenReturn(List.of(student));
+        when(studentService.findAll(isNull(), isNull(), isNull(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(student)));
 
         mockMvc.perform(get("/api/students"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].email").value("pedro@example.com"));
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].email").value("pedro@example.com"));
     }
 
     @Test
@@ -154,7 +182,10 @@ class StudentControllerTest {
         StudentDTO invalid = new StudentDTO();
         invalid.setEmail("nao-e-email");
         invalid.setName("Pedro");
+        invalid.setEnrollment("2024001");
         invalid.setGradeId(1L);
+        invalid.setCourse("Desenvolvimento de Sistemas");
+        invalid.setShift(GradeShift.MANHA);
 
         mockMvc.perform(post("/api/students")
                         .with(csrf())
@@ -171,6 +202,9 @@ class StudentControllerTest {
         StudentDTO invalid = new StudentDTO();
         invalid.setEmail("pedro@example.com");
         invalid.setName("Pedro");
+        invalid.setEnrollment("2024001");
+        invalid.setCourse("Desenvolvimento de Sistemas");
+        invalid.setShift(GradeShift.MANHA);
         // gradeId não informado (null)
 
         mockMvc.perform(post("/api/students")
