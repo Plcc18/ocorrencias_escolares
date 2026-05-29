@@ -29,7 +29,7 @@ public class GradeController {
     @Operation(summary = "Cadastrar nova turma/série")
     public ResponseEntity<GradeDTO> create(@Valid @RequestBody GradeDTO dto) {
         Grade grade = service.create(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(toDTO(grade, 0L));
+        return ResponseEntity.status(HttpStatus.CREATED).body(toDTO(grade));
     }
 
     @PutMapping("/{id}")
@@ -37,7 +37,7 @@ public class GradeController {
     @Operation(summary = "Atualizar turma/série")
     public ResponseEntity<GradeDTO> update(@PathVariable Long id, @Valid @RequestBody GradeDTO dto) {
         Grade grade = service.update(id, dto);
-        return ResponseEntity.ok(toDTO(grade, service.countStudents(id)));
+        return ResponseEntity.ok(toDTO(grade));
     }
 
     @GetMapping("/{id}")
@@ -45,15 +45,14 @@ public class GradeController {
     @Operation(summary = "Buscar turma por ID")
     public ResponseEntity<GradeDTO> findById(@PathVariable Long id) {
         Grade grade = service.findById(id);
-        return ResponseEntity.ok(toDTO(grade, service.countStudents(id)));
+        return ResponseEntity.ok(toDTO(grade));
     }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     @Operation(summary = "Listar todas as turmas")
     public ResponseEntity<List<GradeDTO>> findAll() {
-        List<GradeDTO> list = service.findAllWithStudentCount();
-        return ResponseEntity.ok(list);
+        return ResponseEntity.ok(service.findAllWithStudentCount());
     }
 
     @DeleteMapping("/{id}")
@@ -64,13 +63,15 @@ public class GradeController {
         return ResponseEntity.noContent().build();
     }
 
-    private GradeDTO toDTO(Grade grade, Long studentCount) {
+    private GradeDTO toDTO(Grade grade) {
         GradeDTO dto = new GradeDTO();
         dto.setId(grade.getId());
         dto.setName(grade.getName());
-        dto.setCourse(grade.getCourse());
+        dto.setCourseId(grade.getCourse().getId());
+        dto.setCourseName(grade.getCourse().getName());
+        dto.setCourseAcronym(grade.getCourse().getAcronym());
         dto.setShift(grade.getShift());
-        dto.setStudentCount(studentCount);
+        dto.setStudentCount(service.countStudents(grade.getId()));
         dto.setCreatedAt(grade.getCreatedAt());
         dto.setUpdatedAt(grade.getUpdatedAt());
         return dto;

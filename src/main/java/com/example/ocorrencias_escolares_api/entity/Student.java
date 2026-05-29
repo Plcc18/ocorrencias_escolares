@@ -37,11 +37,6 @@ public class Student extends AuditableEntity {
     @JoinColumn(name = "grade_id", nullable = false)
     private Grade grade;
 
-    @NotBlank(message = "Course is mandatory")
-    @Size(max = 100)
-    @Column(nullable = false)
-    private String course;
-
     @NotNull(message = "Shift is mandatory")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -50,19 +45,19 @@ public class Student extends AuditableEntity {
     @Column(nullable = false, length = 10)
     private String status = "ATIVO";
 
-    @Column(name = "birth_date")
+    @Column(nullable = false, name = "birth_date")
     private String birthDate;
 
     @Size(max = 100)
-    @Column(name = "guardian")
+    @Column(nullable = false, name = "guardian")
     private String guardian;
 
     @Size(max = 20)
-    @Column(name = "guardian_phone")
+    @Column(nullable = false, name = "guardian_phone")
     private String guardianPhone;
 
     @Size(max = 100)
-    @Column(name = "guardian_email")
+    @Column(nullable = false, name = "guardian_email")
     private String guardianEmail;
 
     @Column(columnDefinition = "TEXT")

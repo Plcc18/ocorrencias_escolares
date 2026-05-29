@@ -42,7 +42,6 @@ public class StudentServiceImpl implements StudentService {
             throw new BusinessException("Matrícula já cadastrada: " + dto.getEnrollment());
         }
         Grade grade = gradeService.findById(dto.getGradeId());
-
         Student student = new Student();
         fillFromDTO(student, dto, grade);
         return repository.save(student);
@@ -112,7 +111,6 @@ public class StudentServiceImpl implements StudentService {
         student.setEmail(dto.getEmail());
         student.setEnrollment(dto.getEnrollment());
         student.setGrade(grade);
-        student.setCourse(dto.getCourse());
         student.setShift(dto.getShift());
         student.setStatus(dto.getStatus() != null ? dto.getStatus() : "ATIVO");
         student.setBirthDate(dto.getBirthDate());

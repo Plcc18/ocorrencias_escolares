@@ -1,35 +1,28 @@
 package com.example.ocorrencias_escolares_api.entity;
 
-import com.example.ocorrencias_escolares_api.enums.GradeShift;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Entity
-@Table(name = "grades")
+@Table(name = "courses")
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class Grade extends AuditableEntity {
+public class Course extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
+    @NotBlank(message = "Name is mandatory")
     @Size(max = 100)
     @Column(unique = true, nullable = false)
     private String name;
 
-    @NotNull(message = "Course is mandatory")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
-
-    @NotNull
-    @Enumerated(EnumType.STRING)
+    @NotBlank(message = "Acronym is mandatory")
+    @Size(max = 20)
     @Column(nullable = false, length = 20)
-    private GradeShift shift;
+    private String acronym;
 }

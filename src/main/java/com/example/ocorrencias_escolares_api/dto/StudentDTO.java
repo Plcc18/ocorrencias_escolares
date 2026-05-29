@@ -39,10 +39,13 @@ public class StudentDTO {
     @Schema(description = "Nome da turma (retornado na leitura)", accessMode = Schema.AccessMode.READ_ONLY)
     private String gradeName;
 
-    @NotBlank(message = "Course is mandatory")
-    @Size(max = 100)
-    @Schema(description = "Curso do aluno", example = "Ensino Médio")
-    private String course;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @Schema(description = "Nome do curso (derivado da turma)", accessMode = Schema.AccessMode.READ_ONLY)
+    private String courseName;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @Schema(description = "Sigla do curso (derivado da turma)", accessMode = Schema.AccessMode.READ_ONLY)
+    private String courseAcronym;
 
     @NotNull(message = "Shift is mandatory")
     @Schema(description = "Turno", example = "MANHA",
