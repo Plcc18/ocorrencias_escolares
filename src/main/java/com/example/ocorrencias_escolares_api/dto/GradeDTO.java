@@ -3,9 +3,7 @@ package com.example.ocorrencias_escolares_api.dto;
 import com.example.ocorrencias_escolares_api.enums.GradeShift;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -17,21 +15,32 @@ public class GradeDTO {
     @Schema(description = "ID da turma (gerado automaticamente)", accessMode = Schema.AccessMode.READ_ONLY)
     private Long id;
 
-    @NotBlank(message = "Name is mandatory")
-    @Size(max = 100)
-    @Schema(description = "Nome da turma/série", example = "3º DS A")
-    private String name;
+    @NotNull(message = "Grade level is mandatory")
+    @Min(value = 1, message = "Grade level must be between 1 and 3")
+    @Max(value = 3, message = "Grade level must be between 1 and 3")
+    @Schema(description = "Série da turma (1, 2 ou 3)", example = "3")
+    private Integer gradeLevel;
+
+    @NotNull(message = "School year is mandatory")
+    @Min(value = 2000)
+    @Max(value = 2100)
+    @Schema(description = "Ano letivo", example = "2025")
+    private Integer schoolYear;
 
     @NotNull(message = "Course ID is mandatory")
     @Schema(description = "ID do curso", example = "1")
     private Long courseId;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    @Schema(description = "Nome do curso (retornado na leitura)", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Nome visual gerado (ex: '3º DS - 2025')", accessMode = Schema.AccessMode.READ_ONLY)
+    private String displayName;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @Schema(description = "Nome do curso", accessMode = Schema.AccessMode.READ_ONLY)
     private String courseName;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    @Schema(description = "Sigla do curso (retornado na leitura)", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Sigla do curso", accessMode = Schema.AccessMode.READ_ONLY)
     private String courseAcronym;
 
     @NotNull(message = "Shift is mandatory")

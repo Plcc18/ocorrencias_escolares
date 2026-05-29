@@ -84,7 +84,7 @@ public class StudentController {
         dto.setEmail(s.getEmail());
         dto.setEnrollment(s.getEnrollment());
         dto.setGradeId(s.getGrade().getId());
-        dto.setGradeName(s.getGrade().getName());
+        dto.setGradeName(s.getGrade().getDisplayName());
         dto.setCourseName(s.getGrade().getCourse().getName());
         dto.setCourseAcronym(s.getGrade().getCourse().getAcronym());
         dto.setShift(s.getShift());

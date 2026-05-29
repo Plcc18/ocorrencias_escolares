@@ -102,9 +102,8 @@ public class OccurrenceController {
         dto.setStudentName(o.getStudent().getName());
         dto.setTeacherId(o.getTeacher().getId());
         dto.setTeacherName(o.getTeacher().getName());
-        // gradeId e gradeName derivados do aluno
         dto.setGradeId(o.getStudent().getGrade().getId());
-        dto.setGradeName(o.getStudent().getGrade().getName());
+        dto.setGradeName(o.getStudent().getGrade().getDisplayName());
         dto.setCreatedAt(o.getCreatedAt());
         dto.setUpdatedAt(o.getUpdatedAt());
         return dto;

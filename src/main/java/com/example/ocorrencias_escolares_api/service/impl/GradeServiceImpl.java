@@ -32,12 +32,18 @@ public class GradeServiceImpl implements GradeService {
     @Override
     @Transactional
     public Grade create(GradeDTO dto) {
-        if (repository.existsByName(dto.getName())) {
-            throw new BusinessException("Já existe uma turma com o nome: " + dto.getName());
-        }
         Course course = courseService.findById(dto.getCourseId());
+        if (repository.existsByCourseIdAndGradeLevelAndSchoolYearAndShift(
+                dto.getCourseId(), dto.getGradeLevel(), dto.getSchoolYear(), dto.getShift())) {
+            throw new BusinessException(
+                    "Já existe uma turma para " + dto.getGradeLevel() + "º " +
+                            course.getAcronym() + " - " + dto.getSchoolYear() +
+                            " no turno " + dto.getShift().getLabel()
+            );
+        }
         Grade grade = new Grade();
-        grade.setName(dto.getName());
+        grade.setGradeLevel(dto.getGradeLevel());
+        grade.setSchoolYear(dto.getSchoolYear());
         grade.setCourse(course);
         grade.setShift(dto.getShift());
         return repository.save(grade);
@@ -47,11 +53,17 @@ public class GradeServiceImpl implements GradeService {
     @Transactional
     public Grade update(Long id, GradeDTO dto) {
         Grade grade = findById(id);
-        if (repository.existsByNameAndIdNot(dto.getName(), id)) {
-            throw new BusinessException("Já existe uma turma com o nome: " + dto.getName());
-        }
         Course course = courseService.findById(dto.getCourseId());
-        grade.setName(dto.getName());
+        if (repository.existsByCourseIdAndGradeLevelAndSchoolYearAndShiftAndIdNot(
+                dto.getCourseId(), dto.getGradeLevel(), dto.getSchoolYear(), dto.getShift(), id)) {
+            throw new BusinessException(
+                    "Já existe uma turma para " + dto.getGradeLevel() + "º " +
+                            course.getAcronym() + " - " + dto.getSchoolYear() +
+                            " no turno " + dto.getShift().getLabel()
+            );
+        }
+        grade.setGradeLevel(dto.getGradeLevel());
+        grade.setSchoolYear(dto.getSchoolYear());
         grade.setCourse(course);
         grade.setShift(dto.getShift());
         return repository.save(grade);
@@ -73,7 +85,9 @@ public class GradeServiceImpl implements GradeService {
     @Override
     @Transactional(readOnly = true)
     public List<GradeDTO> findAllWithStudentCount() {
-        return repository.findAll().stream().map(g -> toDTO(g, studentRepository.countByGradeId(g.getId()))).toList();
+        return repository.findAll().stream()
+                .map(g -> toDTO(g, studentRepository.countByGradeId(g.getId())))
+                .toList();
     }
 
     @Override
@@ -90,20 +104,22 @@ public class GradeServiceImpl implements GradeService {
         }
         if (studentRepository.existsByGradeId(id)) {
             throw new BusinessException(
-                    "Não é possível remover a turma pois existem alunos vinculados a ela. " +
+                    "Não é possível remover a turma pois existem alunos vinculados. " +
                             "Remova ou transfira os alunos antes de excluir a turma.");
         }
         repository.deleteById(id);
     }
 
-    private GradeDTO toDTO(Grade g, long studentCount) {
+    public GradeDTO toDTO(Grade g, long studentCount) {
         GradeDTO dto = new GradeDTO();
         dto.setId(g.getId());
-        dto.setName(g.getName());
+        dto.setGradeLevel(g.getGradeLevel());
+        dto.setSchoolYear(g.getSchoolYear());
         dto.setCourseId(g.getCourse().getId());
         dto.setCourseName(g.getCourse().getName());
         dto.setCourseAcronym(g.getCourse().getAcronym());
         dto.setShift(g.getShift());
+        dto.setDisplayName(g.getDisplayName());
         dto.setStudentCount(studentCount);
         dto.setCreatedAt(g.getCreatedAt());
         dto.setUpdatedAt(g.getUpdatedAt());
