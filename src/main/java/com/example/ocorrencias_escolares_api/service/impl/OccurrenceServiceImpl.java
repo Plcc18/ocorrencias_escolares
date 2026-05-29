@@ -43,6 +43,11 @@ public class OccurrenceServiceImpl implements OccurrenceService {
         occurrence.setStudent(student);
         occurrence.setTeacher(teacher);
 
+        // ── SNAPSHOT: grava a turma atual do aluno no momento do registro ──
+        // Isso garante que mesmo após promoção, o histórico exibe
+        // a turma correta da época da ocorrência.
+        occurrence.setGrade(student.getGrade());
+
         return repository.save(occurrence);
     }
 
@@ -56,7 +61,10 @@ public class OccurrenceServiceImpl implements OccurrenceService {
         occurrence.setOccurrenceType(dto.getOccurrenceType());
 
         if (dto.getStudentId() != null) {
-            occurrence.setStudent(studentService.findById(dto.getStudentId()));
+            Student student = studentService.findById(dto.getStudentId());
+            occurrence.setStudent(student);
+            // Atualiza snapshot da turma se o aluno mudou
+            occurrence.setGrade(student.getGrade());
         }
         if (dto.getTeacherId() != null) {
             occurrence.setTeacher(teacherService.findById(dto.getTeacherId()));

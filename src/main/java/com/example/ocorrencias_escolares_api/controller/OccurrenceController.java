@@ -51,8 +51,7 @@ public class OccurrenceController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    @Operation(summary = "Listar ocorrências com filtros opcionais (paginado)",
-            description = "Filtros disponíveis: studentId, teacherId, gradeId, occurrenceType, startDate, endDate")
+    @Operation(summary = "Listar ocorrências com filtros opcionais (paginado)")
     public ResponseEntity<Page<OccurrenceDTO>> findAll(
             OccurrenceFilterDTO filter,
             @ParameterObject
@@ -62,7 +61,7 @@ public class OccurrenceController {
 
     @GetMapping("/student/{studentId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
-    @Operation(summary = "Listar ocorrências de um aluno específico")
+    @Operation(summary = "Listar ocorrências de um aluno")
     public ResponseEntity<Page<OccurrenceDTO>> findByStudent(
             @PathVariable Long studentId,
             @ParameterObject
@@ -102,8 +101,15 @@ public class OccurrenceController {
         dto.setStudentName(o.getStudent().getName());
         dto.setTeacherId(o.getTeacher().getId());
         dto.setTeacherName(o.getTeacher().getName());
-        dto.setGradeId(o.getStudent().getGrade().getId());
-        dto.setGradeName(o.getStudent().getGrade().getDisplayName());
+
+        if (o.getGrade() != null) {
+            dto.setGradeId(o.getGrade().getId());
+            dto.setGradeName(o.getGrade().getDisplayName());
+        } else {
+            dto.setGradeId(o.getStudent().getGrade().getId());
+            dto.setGradeName(o.getStudent().getGrade().getDisplayName());
+        }
+
         dto.setCreatedAt(o.getCreatedAt());
         dto.setUpdatedAt(o.getUpdatedAt());
         return dto;

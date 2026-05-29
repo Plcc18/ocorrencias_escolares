@@ -1,14 +1,17 @@
 package com.example.ocorrencias_escolares_api.service.impl;
 
 import com.example.ocorrencias_escolares_api.dto.StudentDTO;
+import com.example.ocorrencias_escolares_api.entity.EnrollmentHistory.EnrollmentReason;
 import com.example.ocorrencias_escolares_api.entity.Grade;
 import com.example.ocorrencias_escolares_api.entity.Student;
 import com.example.ocorrencias_escolares_api.exception.BusinessException;
 import com.example.ocorrencias_escolares_api.exception.ResourceNotFoundException;
 import com.example.ocorrencias_escolares_api.repository.OccurrenceRepository;
 import com.example.ocorrencias_escolares_api.repository.StudentRepository;
+import com.example.ocorrencias_escolares_api.service.EnrollmentService;
 import com.example.ocorrencias_escolares_api.service.GradeService;
 import com.example.ocorrencias_escolares_api.service.StudentService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,13 +25,16 @@ public class StudentServiceImpl implements StudentService {
     private final StudentRepository repository;
     private final OccurrenceRepository occurrenceRepository;
     private final GradeService gradeService;
+    private final EnrollmentService enrollmentService;
 
     public StudentServiceImpl(StudentRepository repository,
                               OccurrenceRepository occurrenceRepository,
-                              GradeService gradeService) {
+                              GradeService gradeService,
+                              @Lazy EnrollmentService enrollmentService) {
         this.repository = repository;
         this.occurrenceRepository = occurrenceRepository;
         this.gradeService = gradeService;
+        this.enrollmentService = enrollmentService;
     }
 
     @Override
@@ -44,7 +50,12 @@ public class StudentServiceImpl implements StudentService {
         Grade grade = gradeService.findById(dto.getGradeId());
         Student student = new Student();
         fillFromDTO(student, dto, grade);
-        return repository.save(student);
+        student = repository.save(student);
+
+        // Registra matrícula inicial no histórico
+        enrollmentService.registerInitialEnrollment(student.getId(), grade.getId());
+
+        return student;
     }
 
     @Override
@@ -64,8 +75,21 @@ public class StudentServiceImpl implements StudentService {
         }
 
         Grade grade = gradeService.findById(dto.getGradeId());
+
+        // Se a turma mudou, use o serviço de promoção para manter histórico
+        // Mudanças de turma via StudentService (edição direta) são tratadas como
+        // TRANSFERENCIA silenciosa. Para promoção formal, use /api/enrollments.
+        boolean gradeChanged = !student.getGrade().getId().equals(grade.getId());
+
         fillFromDTO(student, dto, grade);
-        return repository.save(student);
+        student = repository.save(student);
+
+        if (gradeChanged) {
+            // Atualiza histórico: encerra atual e abre nova como TRANSFERENCIA
+            enrollmentService.transferEnrollment(student.getId(), grade.getId(), EnrollmentReason.TRANSFERENCIA, dto.getNotes());
+        }
+
+        return student;
     }
 
     @Override
@@ -111,7 +135,7 @@ public class StudentServiceImpl implements StudentService {
         student.setEmail(dto.getEmail());
         student.setEnrollment(dto.getEnrollment());
         student.setGrade(grade);
-        student.setShift(dto.getShift());
+        student.setShift(grade.getShift());
         student.setStatus(dto.getStatus() != null ? dto.getStatus() : "ATIVO");
         student.setBirthDate(dto.getBirthDate());
         student.setGuardian(dto.getGuardian());
