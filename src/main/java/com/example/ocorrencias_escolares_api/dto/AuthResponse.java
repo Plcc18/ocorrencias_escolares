@@ -24,11 +24,16 @@ public class AuthResponse {
     @Schema(description = "Função do usuário")
     private Role role;
 
-    public AuthResponse(String accessToken, Long userId, String email, String username, Role role) {
+    @Schema(description = "ID do professor (apenas para role TEACHER)")
+    private Long teacherId;
+
+    public AuthResponse(String accessToken, Long userId, String email,
+                        String username, Role role, Long teacherId) {
         this.accessToken = accessToken;
         this.userId = userId;
         this.email = email;
         this.username = username;
         this.role = role;
+        this.teacherId = teacherId;
     }
 }

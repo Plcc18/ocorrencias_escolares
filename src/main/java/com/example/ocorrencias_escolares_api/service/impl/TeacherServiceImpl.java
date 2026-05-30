@@ -2,14 +2,17 @@ package com.example.ocorrencias_escolares_api.service.impl;
 
 import com.example.ocorrencias_escolares_api.dto.TeacherDTO;
 import com.example.ocorrencias_escolares_api.entity.Teacher;
+import com.example.ocorrencias_escolares_api.entity.TeacherSubject;
 import com.example.ocorrencias_escolares_api.entity.User;
 import com.example.ocorrencias_escolares_api.enums.Role;
 import com.example.ocorrencias_escolares_api.exception.BusinessException;
 import com.example.ocorrencias_escolares_api.exception.ResourceNotFoundException;
 import com.example.ocorrencias_escolares_api.repository.OccurrenceRepository;
 import com.example.ocorrencias_escolares_api.repository.TeacherRepository;
+import com.example.ocorrencias_escolares_api.repository.TeacherSubjectRepository;
 import com.example.ocorrencias_escolares_api.repository.UserRepository;
 import com.example.ocorrencias_escolares_api.service.TeacherService;
+import jakarta.persistence.EntityManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,18 +23,24 @@ import java.util.List;
 public class TeacherServiceImpl implements TeacherService {
 
     private final TeacherRepository repository;
+    private final TeacherSubjectRepository subjectRepository;
     private final OccurrenceRepository occurrenceRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EntityManager entityManager;
 
     public TeacherServiceImpl(TeacherRepository repository,
+                              TeacherSubjectRepository subjectRepository,
                               OccurrenceRepository occurrenceRepository,
                               UserRepository userRepository,
-                              PasswordEncoder passwordEncoder) {
+                              PasswordEncoder passwordEncoder,
+                              EntityManager entityManager) {
         this.repository = repository;
+        this.subjectRepository = subjectRepository;
         this.occurrenceRepository = occurrenceRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -44,7 +53,6 @@ public class TeacherServiceImpl implements TeacherService {
             throw new BusinessException("Já existe um usuário de login com este email: " + dto.getEmail());
         }
 
-        // Validação de senha na criação
         if (dto.getPassword() == null || dto.getPassword().isBlank()) {
             throw new BusinessException("Senha é obrigatória ao cadastrar um professor.");
         }
@@ -55,14 +63,13 @@ public class TeacherServiceImpl implements TeacherService {
             throw new BusinessException("A senha deve ter no máximo 255 caracteres.");
         }
 
-        // 1. Cria o registro de professor
         Teacher teacher = new Teacher();
         teacher.setName(dto.getName());
         teacher.setEmail(dto.getEmail());
-        teacher.setSubject(dto.getSubject());
         teacher = repository.save(teacher);
 
-        // 2. Cria o usuário de login vinculado pelo mesmo email
+        setSubjects(teacher, dto.getSubjects());
+
         User user = new User();
         user.setUsername(dto.getName());
         user.setEmail(dto.getEmail());
@@ -87,11 +94,12 @@ public class TeacherServiceImpl implements TeacherService {
         String oldEmail = teacher.getEmail();
         teacher.setName(dto.getName());
         teacher.setEmail(dto.getEmail());
-        teacher.setSubject(dto.getSubject());
-        // password é ignorado na edição — use PATCH /api/teachers/{id}/password
-        Teacher saved = repository.save(teacher);
+        Teacher saved = repository.saveAndFlush(teacher);
 
-        // Sincroniza o User: atualiza email e username se o email mudou
+        // Substitui disciplinas — flush garante que os DELETEs chegam ao banco
+        // antes dos INSERTs, evitando violação da unique constraint uq_teacher_subject
+        setSubjects(saved, dto.getSubjects());
+
         userRepository.findByEmail(oldEmail).ifPresent(user -> {
             user.setEmail(dto.getEmail());
             user.setUsername(dto.getName());
@@ -141,8 +149,36 @@ public class TeacherServiceImpl implements TeacherService {
                             "Remova as ocorrências antes de excluir o professor.");
         }
 
-        // Remove o User de login junto com o professor
         userRepository.findByEmail(teacher.getEmail()).ifPresent(userRepository::delete);
         repository.deleteById(id);
+    }
+
+    private void setSubjects(Teacher teacher, List<String> subjects) {
+        // 1. Delete direto no banco
+        subjectRepository.deleteByTeacherId(teacher.getId());
+
+        // 2. Flush — garante que os DELETEs chegaram ao banco antes dos INSERTs
+        entityManager.flush();
+
+        // 3. Limpa a coleção em memória para o Hibernate não tentar re-inserir
+        teacher.getTeacherSubjects().clear();
+
+        if (subjects == null || subjects.isEmpty()) return;
+
+        // 4. Insere as novas disciplinas
+        subjects.stream()
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .distinct()
+                .forEach(s -> {
+                    TeacherSubject ts = new TeacherSubject();
+                    ts.setTeacher(teacher);
+                    ts.setSubject(s);
+                    teacher.getTeacherSubjects().add(ts);
+                    subjectRepository.save(ts);
+                });
+
+        // 5. Flush final para persistir os INSERTs imediatamente
+        entityManager.flush();
     }
 }

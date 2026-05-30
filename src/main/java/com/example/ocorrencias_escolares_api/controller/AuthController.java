@@ -5,6 +5,8 @@ import com.example.ocorrencias_escolares_api.dto.LoginRequest;
 import com.example.ocorrencias_escolares_api.dto.RegisterRequest;
 import com.example.ocorrencias_escolares_api.dto.UserResponseDTO;
 import com.example.ocorrencias_escolares_api.entity.User;
+import com.example.ocorrencias_escolares_api.enums.Role;
+import com.example.ocorrencias_escolares_api.repository.TeacherRepository;
 import com.example.ocorrencias_escolares_api.security.JwtTokenProvider;
 import com.example.ocorrencias_escolares_api.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,13 +30,16 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserService userService;
+    private final TeacherRepository teacherRepository;
 
     public AuthController(AuthenticationManager authenticationManager,
                           JwtTokenProvider jwtTokenProvider,
-                          UserService userService) {
+                          UserService userService,
+                          TeacherRepository teacherRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.userService = userService;
+        this.teacherRepository = teacherRepository;
     }
 
     @PostMapping("/login")
@@ -50,8 +55,9 @@ public class AuthController {
                 token,
                 user.getId(),
                 user.getEmail(),
-                user.getDisplayName(),  // campo 'username' real, não getUsername() do Spring
-                user.getRole()
+                user.getDisplayName(),
+                user.getRole(),
+                resolveTeacherId(user)
         ));
     }
 
@@ -67,18 +73,24 @@ public class AuthController {
     @Operation(summary = "Retorna os dados do usuário autenticado",
             security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<UserResponseDTO> me(@AuthenticationPrincipal User user) {
-        // Mapeamento manual — ModelMapper usaria getUsername() do Spring Security,
-        // que retorna o email, corrompendo o campo 'username' no DTO.
         return ResponseEntity.ok(toDTO(user));
+    }
+
+    private Long resolveTeacherId(User user) {
+        if (user.getRole() != Role.TEACHER) return null;
+        return teacherRepository.findByEmail(user.getEmail())
+                .map(t -> t.getId())
+                .orElse(null);
     }
 
     private UserResponseDTO toDTO(User user) {
         UserResponseDTO dto = new UserResponseDTO();
         dto.setId(user.getId());
         dto.setEmail(user.getEmail());
-        dto.setUsername(user.getDisplayName()); // nome real: "Maria Oliveira"
+        dto.setUsername(user.getDisplayName());
         dto.setRole(user.getRole());
         dto.setCreatedAt(user.getCreatedAt());
+        dto.setTeacherId(resolveTeacherId(user));
         return dto;
     }
 }

@@ -23,4 +23,7 @@ public class UserResponseDTO {
 
     @Schema(description = "Data e hora de criação da conta")
     private LocalDateTime createdAt;
+
+    @Schema(description = "ID do professor (apenas para role TEACHER)")
+    private Long teacherId;
 }

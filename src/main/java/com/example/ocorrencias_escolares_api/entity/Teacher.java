@@ -6,6 +6,9 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "teachers")
 @Data
@@ -26,8 +29,14 @@ public class Teacher extends AuditableEntity {
     @Column(nullable = false)
     private String name;
 
-    @NotBlank(message = "Subject is mandatory")
-    @Size(max = 50)
-    @Column(nullable = false)
-    private String subject;
+    @OneToMany(mappedBy = "teacher", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<TeacherSubject> teacherSubjects = new ArrayList<>();
+
+    //Retorna os nomes das disciplinas
+    public List<String> getSubjects() {
+        return teacherSubjects.stream()
+                .map(TeacherSubject::getSubject)
+                .sorted()
+                .toList();
+    }
 }
