@@ -43,8 +43,16 @@ public class TeacherServiceImpl implements TeacherService {
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new BusinessException("Já existe um usuário de login com este email: " + dto.getEmail());
         }
+
+        // Validação de senha na criação
         if (dto.getPassword() == null || dto.getPassword().isBlank()) {
             throw new BusinessException("Senha é obrigatória ao cadastrar um professor.");
+        }
+        if (dto.getPassword().length() < 6) {
+            throw new BusinessException("A senha deve ter no mínimo 6 caracteres.");
+        }
+        if (dto.getPassword().length() > 255) {
+            throw new BusinessException("A senha deve ter no máximo 255 caracteres.");
         }
 
         // 1. Cria o registro de professor
@@ -80,6 +88,7 @@ public class TeacherServiceImpl implements TeacherService {
         teacher.setName(dto.getName());
         teacher.setEmail(dto.getEmail());
         teacher.setSubject(dto.getSubject());
+        // password é ignorado na edição — use PATCH /api/teachers/{id}/password
         Teacher saved = repository.save(teacher);
 
         // Sincroniza o User: atualiza email e username se o email mudou

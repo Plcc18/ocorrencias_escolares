@@ -30,10 +30,20 @@ public class TeacherDTO {
     @Schema(description = "Disciplina ministrada", example = "Matemática")
     private String subject;
 
+    /**
+     * Senha para login.
+     * - Obrigatória na criação (validada no TeacherServiceImpl).
+     * - Ignorada na edição (PUT /api/teachers/{id} não altera senha).
+     * - Para alterar senha use PATCH /api/teachers/{id}/password.
+     *
+     * Sem @Size aqui para evitar falha de validação quando o campo chega
+     * vazio na edição. A constraint de tamanho mínimo (6) é aplicada
+     * programaticamente no service durante a criação.
+     */
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @Size(min = 6, max = 255, message = "Password must be between 6 and 255 characters")
     @Schema(
-            description = "Senha para login (obrigatória na criação, ignorada na edição)",
+            description = "Senha para login (obrigatória na criação, ignorada na edição). " +
+                    "Para alterar senha use PATCH /api/teachers/{id}/password.",
             example = "senha123",
             accessMode = Schema.AccessMode.WRITE_ONLY
     )
