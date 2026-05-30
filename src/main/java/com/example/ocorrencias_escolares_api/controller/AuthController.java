@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,16 +28,13 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserService userService;
-    private final ModelMapper modelMapper;
 
     public AuthController(AuthenticationManager authenticationManager,
                           JwtTokenProvider jwtTokenProvider,
-                          UserService userService,
-                          ModelMapper modelMapper) {
+                          UserService userService) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.userService = userService;
-        this.modelMapper = modelMapper;
     }
 
     @PostMapping("/login")
@@ -49,14 +45,21 @@ public class AuthController {
         );
         User user = (User) authentication.getPrincipal();
         String token = jwtTokenProvider.generateToken(authentication);
-        return ResponseEntity.ok(new AuthResponse(token, user.getId(), user.getEmail(), user.getUsername(), user.getRole()));
+
+        return ResponseEntity.ok(new AuthResponse(
+                token,
+                user.getId(),
+                user.getEmail(),
+                user.getDisplayName(),  // campo 'username' real, não getUsername() do Spring
+                user.getRole()
+        ));
     }
 
     @PostMapping("/register")
     @Operation(summary = "Registrar novo usuário")
     public ResponseEntity<UserResponseDTO> register(@Valid @RequestBody RegisterRequest request) {
         User user = userService.register(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(modelMapper.map(user, UserResponseDTO.class));
+        return ResponseEntity.status(HttpStatus.CREATED).body(toDTO(user));
     }
 
     @GetMapping("/me")
@@ -64,6 +67,18 @@ public class AuthController {
     @Operation(summary = "Retorna os dados do usuário autenticado",
             security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<UserResponseDTO> me(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(modelMapper.map(user, UserResponseDTO.class));
+        // Mapeamento manual — ModelMapper usaria getUsername() do Spring Security,
+        // que retorna o email, corrompendo o campo 'username' no DTO.
+        return ResponseEntity.ok(toDTO(user));
+    }
+
+    private UserResponseDTO toDTO(User user) {
+        UserResponseDTO dto = new UserResponseDTO();
+        dto.setId(user.getId());
+        dto.setEmail(user.getEmail());
+        dto.setUsername(user.getDisplayName()); // nome real: "Maria Oliveira"
+        dto.setRole(user.getRole());
+        dto.setCreatedAt(user.getCreatedAt());
+        return dto;
     }
 }

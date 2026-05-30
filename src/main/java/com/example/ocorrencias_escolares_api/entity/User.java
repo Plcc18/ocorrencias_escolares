@@ -29,6 +29,7 @@ public class User extends AuditableEntity implements UserDetails {
     @Column(unique = true, nullable = false)
     private String email;
 
+    //Nome de exibição do usuário
     @NotBlank(message = "Username is mandatory")
     @Size(max = 100)
     @Column(unique = true, nullable = false)
@@ -43,6 +44,8 @@ public class User extends AuditableEntity implements UserDetails {
     @Column(nullable = false, length = 20)
     private Role role;
 
+    // ── Spring Security ───────────────────────────────────────────────────────
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
@@ -53,20 +56,19 @@ public class User extends AuditableEntity implements UserDetails {
         return password;
     }
 
+    //Retorna o EMAIL — usado pelo Spring Security como identificador de login
     @Override
     public String getUsername() {
         return email;
     }
 
-    @Override
-    public boolean isAccountNonExpired() { return true; }
+    //Retorna o nome real do usuário
+    public String getDisplayName() {
+        return username;
+    }
 
-    @Override
-    public boolean isAccountNonLocked() { return true; }
-
-    @Override
-    public boolean isCredentialsNonExpired() { return true; }
-
-    @Override
-    public boolean isEnabled() { return true; }
+    @Override public boolean isAccountNonExpired()     { return true; }
+    @Override public boolean isAccountNonLocked()      { return true; }
+    @Override public boolean isCredentialsNonExpired() { return true; }
+    @Override public boolean isEnabled()               { return true; }
 }
