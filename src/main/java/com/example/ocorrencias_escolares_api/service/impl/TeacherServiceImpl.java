@@ -94,11 +94,11 @@ public class TeacherServiceImpl implements TeacherService {
         String oldEmail = teacher.getEmail();
         teacher.setName(dto.getName());
         teacher.setEmail(dto.getEmail());
-        Teacher saved = repository.saveAndFlush(teacher);
 
-        // Substitui disciplinas — flush garante que os DELETEs chegam ao banco
-        // antes dos INSERTs, evitando violação da unique constraint uq_teacher_subject
-        setSubjects(saved, dto.getSubjects());
+        // Atualiza disciplinas via coleção (cascade + orphanRemoval cuidam do resto)
+        setSubjects(teacher, dto.getSubjects());
+
+        Teacher saved = repository.saveAndFlush(teacher);
 
         userRepository.findByEmail(oldEmail).ifPresent(user -> {
             user.setEmail(dto.getEmail());
@@ -154,31 +154,33 @@ public class TeacherServiceImpl implements TeacherService {
     }
 
     private void setSubjects(Teacher teacher, List<String> subjects) {
-        // 1. Delete direto no banco
-        subjectRepository.deleteByTeacherId(teacher.getId());
+        if (subjects == null) {
+            teacher.getTeacherSubjects().clear();
+            return;
+        }
 
-        // 2. Flush — garante que os DELETEs chegaram ao banco antes dos INSERTs
-        entityManager.flush();
-
-        // 3. Limpa a coleção em memória para o Hibernate não tentar re-inserir
-        teacher.getTeacherSubjects().clear();
-
-        if (subjects == null || subjects.isEmpty()) return;
-
-        // 4. Insere as novas disciplinas
-        subjects.stream()
+        List<String> normalized = subjects.stream()
                 .map(String::trim)
                 .filter(s -> !s.isBlank())
                 .distinct()
-                .forEach(s -> {
-                    TeacherSubject ts = new TeacherSubject();
-                    ts.setTeacher(teacher);
-                    ts.setSubject(s);
-                    teacher.getTeacherSubjects().add(ts);
-                    subjectRepository.save(ts);
-                });
+                .toList();
 
-        // 5. Flush final para persistir os INSERTs imediatamente
-        entityManager.flush();
+        // Remove disciplinas que não estão na nova lista
+        teacher.getTeacherSubjects().removeIf(ts -> !normalized.contains(ts.getSubject()));
+
+        // Obtém lista das que restaram
+        List<String> existing = teacher.getTeacherSubjects().stream()
+                .map(TeacherSubject::getSubject)
+                .toList();
+
+        // Adiciona apenas as novas
+        for (String s : normalized) {
+            if (!existing.contains(s)) {
+                TeacherSubject ts = new TeacherSubject();
+                ts.setTeacher(teacher);
+                ts.setSubject(s);
+                teacher.getTeacherSubjects().add(ts);
+            }
+        }
     }
 }
