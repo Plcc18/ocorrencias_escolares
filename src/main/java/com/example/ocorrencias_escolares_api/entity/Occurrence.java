@@ -9,16 +9,6 @@ import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
 
-/**
- * Ocorrência escolar.
- *
- * IMPORTANTE: grade_id é gravado como SNAPSHOT no momento do registro.
- * Isso garante que mesmo após o aluno mudar de turma, o histórico
- * continua exibindo a turma correta da época da ocorrência.
- *
- * NÃO use o.getStudent().getGrade() para exibir a turma da ocorrência —
- * use o.getGrade() que é o snapshot imutável.
- */
 @Entity
 @Table(name = "occurrences")
 @Data
@@ -47,8 +37,9 @@ public class Occurrence extends AuditableEntity {
     @JoinColumn(name = "teacher_id", nullable = false)
     private Teacher teacher;
 
+    @NotNull(message = "Grade is mandatory")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "grade_id")
+    @JoinColumn(name = "grade_id", nullable = false)
     private Grade grade;
 
     @NotNull(message = "Type is mandatory")
