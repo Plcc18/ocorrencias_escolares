@@ -47,10 +47,10 @@ public class TeacherServiceImpl implements TeacherService {
     @Transactional
     public Teacher create(TeacherDTO dto) {
         if (repository.existsByEmail(dto.getEmail())) {
-            throw new BusinessException("Email já cadastrado para outro professor: " + dto.getEmail());
+            throw new BusinessException("Email já cadastrado para outro professor!");
         }
         if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new BusinessException("Já existe um usuário de login com este email: " + dto.getEmail());
+            throw new BusinessException("Já existe um usuário de login com este email!");
         }
 
         if (dto.getPassword() == null || dto.getPassword().isBlank()) {
@@ -88,14 +88,14 @@ public class TeacherServiceImpl implements TeacherService {
         repository.findByEmail(dto.getEmail())
                 .filter(existing -> !existing.getId().equals(id))
                 .ifPresent(existing -> {
-                    throw new BusinessException("Email já cadastrado para outro professor: " + dto.getEmail());
+                    throw new BusinessException("Email já cadastrado para outro professor!");
                 });
 
         String oldEmail = teacher.getEmail();
         teacher.setName(dto.getName());
         teacher.setEmail(dto.getEmail());
 
-        // Atualiza disciplinas via coleção (cascade + orphanRemoval cuidam do resto)
+        // Atualiza disciplinas via coleção
         setSubjects(teacher, dto.getSubjects());
 
         Teacher saved = repository.saveAndFlush(teacher);
@@ -116,7 +116,7 @@ public class TeacherServiceImpl implements TeacherService {
 
         User user = userRepository.findByEmail(teacher.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Usuário de login não encontrado para o professor: " + teacher.getName() +
+                        "Usuário de login não encontrado para o professor!" +
                                 " (" + teacher.getEmail() + "). " +
                                 "O professor pode ter sido cadastrado antes desta funcionalidade. " +
                                 "Crie um usuário manualmente via POST /api/auth/register com role TEACHER e mesmo email."));

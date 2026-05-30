@@ -42,10 +42,10 @@ public class StudentServiceImpl implements StudentService {
     public Student create(StudentDTO dto) {
         if (dto.getEmail() != null && !dto.getEmail().isBlank()
                 && repository.existsByEmail(dto.getEmail())) {
-            throw new BusinessException("Email já cadastrado para outro aluno: " + dto.getEmail());
+            throw new BusinessException("Email já cadastrado para outro aluno!");
         }
         if (repository.existsByEnrollment(dto.getEnrollment())) {
-            throw new BusinessException("Matrícula já cadastrada: " + dto.getEnrollment());
+            throw new BusinessException("Matrícula já cadastrada!");
         }
         Grade grade = gradeService.findById(dto.getGradeId());
         Student student = new Student();
@@ -67,7 +67,7 @@ public class StudentServiceImpl implements StudentService {
             repository.findByEmail(dto.getEmail())
                     .filter(existing -> !existing.getId().equals(id))
                     .ifPresent(existing -> {
-                        throw new BusinessException("Email já cadastrado para outro aluno: " + dto.getEmail());
+                        throw new BusinessException("Email já cadastrado para outro aluno!");
                     });
         }
         if (repository.existsByEnrollmentAndIdNot(dto.getEnrollment(), id)) {
@@ -76,9 +76,6 @@ public class StudentServiceImpl implements StudentService {
 
         Grade grade = gradeService.findById(dto.getGradeId());
 
-        // Se a turma mudou, use o serviço de promoção para manter histórico
-        // Mudanças de turma via StudentService (edição direta) são tratadas como
-        // TRANSFERENCIA silenciosa. Para promoção formal, use /api/enrollments.
         boolean gradeChanged = !student.getGrade().getId().equals(grade.getId());
 
         fillFromDTO(student, dto, grade);

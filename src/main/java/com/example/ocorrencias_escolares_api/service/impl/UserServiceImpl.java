@@ -24,10 +24,10 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public User register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new BusinessException("Email já cadastrado: " + request.getEmail());
+            throw new BusinessException("Email já cadastrado!");
         }
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new BusinessException("Username já em uso: " + request.getUsername());
+            throw new BusinessException("Username já em uso!");
         }
 
         User user = new User();
