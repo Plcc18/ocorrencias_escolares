@@ -19,14 +19,22 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     long countByGradeId(Long gradeId);
     List<Student> findByGradeId(Long gradeId);
 
+    /**
+     * Busca por nome OU matrícula, além de turma e status.
+     * O parâmetro `search` é aplicado em ambos os campos quando não nulo.
+     */
     @Query("""
         SELECT s FROM Student s
-        WHERE (:name IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', CAST(:name AS string), '%')))
+        WHERE (
+            :search IS NULL
+            OR LOWER(s.name)       LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))
+            OR LOWER(s.enrollment) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))
+        )
           AND (:gradeId IS NULL OR s.grade.id = :gradeId)
-          AND (:status IS NULL OR s.status = :status)
+          AND (:status  IS NULL OR s.status  = :status)
         """)
     Page<Student> findWithFilters(
-            @Param("name") String name,
+            @Param("search") String search,
             @Param("gradeId") Long gradeId,
             @Param("status") String status,
             Pageable pageable

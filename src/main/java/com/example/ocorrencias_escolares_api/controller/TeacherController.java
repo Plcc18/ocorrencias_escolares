@@ -1,6 +1,7 @@
 package com.example.ocorrencias_escolares_api.controller;
 
 import com.example.ocorrencias_escolares_api.dto.TeacherDTO;
+import com.example.ocorrencias_escolares_api.dto.ChangePasswordDTO;
 import com.example.ocorrencias_escolares_api.entity.Teacher;
 import com.example.ocorrencias_escolares_api.service.TeacherService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,10 +43,20 @@ public class TeacherController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Atualizar dados de um professor")
+    @Operation(summary = "Atualizar dados de um professor (nome, email, disciplina)")
     public ResponseEntity<TeacherDTO> update(@PathVariable Long id, @Valid @RequestBody TeacherDTO dto) {
         Teacher teacher = service.update(id, dto);
         return ResponseEntity.ok(modelMapper.map(teacher, TeacherDTO.class));
+    }
+
+    @PatchMapping("/{id}/password")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Alterar senha de um professor (somente ADMIN)")
+    public ResponseEntity<Void> changePassword(
+            @PathVariable Long id,
+            @Valid @RequestBody ChangePasswordDTO dto) {
+        service.changePassword(id, dto.getNewPassword());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}")

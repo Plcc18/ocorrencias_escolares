@@ -11,4 +11,5 @@ public interface TeacherService {
     Teacher findById(Long id);
     List<Teacher> findAll();
     void delete(Long id);
+    void changePassword(Long teacherId, String newPassword);
 }

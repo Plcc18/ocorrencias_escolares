@@ -29,15 +29,15 @@ public class StudentController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    @Operation(summary = "Cadastrar novo aluno")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Cadastrar novo aluno (somente ADMIN)")
     public ResponseEntity<StudentDTO> create(@Valid @RequestBody StudentDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(toDTO(service.create(dto)));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    @Operation(summary = "Atualizar dados de um aluno")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Atualizar dados de um aluno (somente ADMIN)")
     public ResponseEntity<StudentDTO> update(@PathVariable Long id, @Valid @RequestBody StudentDTO dto) {
         return ResponseEntity.ok(toDTO(service.update(id, dto)));
     }
@@ -51,7 +51,7 @@ public class StudentController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    @Operation(summary = "Listar alunos (paginado, com filtros opcionais)")
+    @Operation(summary = "Listar alunos (paginado). Filtro busca por nome OU matrícula.")
     public ResponseEntity<Page<StudentDTO>> findAll(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Long gradeId,
@@ -71,7 +71,7 @@ public class StudentController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Remover aluno")
+    @Operation(summary = "Remover aluno (somente ADMIN)")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
