@@ -68,7 +68,7 @@ public class TeacherController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     @Operation(summary = "Listar todos os professores")
     public ResponseEntity<List<TeacherDTO>> findAll() {
         List<TeacherDTO> list = service.findAll()
